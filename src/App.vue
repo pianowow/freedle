@@ -47,7 +47,7 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import LetterTile from './components/LetterTile.vue';
 import Keyboard from './components/Keyboard.vue';
 import { WORDS } from './data/words';
@@ -174,8 +174,6 @@ const handleKeyClick = (key) => {
         gameState.value = 'lost';
       }
       currentRow.value++;
-    } else {
-      // Could add a shake effect here
     }
   } else if (currentGuess.length < wordLength.value) {
     if (/^[A-Z]$/i.test(key)) {
@@ -183,6 +181,25 @@ const handleKeyClick = (key) => {
     }
   }
 };
+
+const handlePhysicalKeyDown = (event) => {
+  if (gameState.value !== 'playing') return;
+
+  const key = event.key;
+  if (key === 'Backspace' || key === 'Enter') {
+    handleKeyClick(key);
+  } else if (/^[a-zA-Z]$/.test(key)) {
+    handleKeyClick(key.toUpperCase());
+  }
+};
+
+onMounted(() => {
+  window.addEventListener('keydown', handlePhysicalKeyDown);
+});
+
+onUnmounted(() => {
+  window.removeEventListener('keydown', handlePhysicalKeyDown);
+});
 </script>
 
 <style>
