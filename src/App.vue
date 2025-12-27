@@ -2,7 +2,7 @@
   <div id="app-container">
     <header>
       <div class="header-content">
-        <h1>Freeordle</h1>
+        <h1>Freedle</h1>
         <div class="difficulty-selector">
           <button 
             v-for="len in [4, 5, 6]" 
