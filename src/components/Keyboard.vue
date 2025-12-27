@@ -20,7 +20,7 @@ const rows = [
   ['Enter', 'Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Backspace']
 ];
 
-defineProps({
+const props = defineProps({
   keyStatuses: {
     type: Object,
     default: () => ({})
@@ -30,8 +30,7 @@ defineProps({
 defineEmits(['keyclick']);
 
 const getKeyClass = (key) => {
-  // Logic to color keys based on game state can go here
-  return '';
+  return props.keyStatuses[key.toUpperCase()] || '';
 };
 </script>
 
@@ -65,10 +64,23 @@ const getKeyClass = (key) => {
   align-items: center;
   justify-content: center;
   flex: 1;
+  transition: background-color 0.2s;
+}
+
+.key.correct {
+  background-color: #538d4e;
+}
+
+.key.present {
+  background-color: #b59f3b;
+}
+
+.key.absent {
+  background-color: #3a3a3c;
 }
 
 .key:hover {
-  background-color: #666;
+  filter: brightness(1.2);
 }
 
 .key[class*="Enter"], .key[class*="Backspace"] {
