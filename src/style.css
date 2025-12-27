@@ -5,7 +5,8 @@
 
   color-scheme: light dark;
   color: rgba(255, 255, 255, 0.9);
-  background-color: #121213; /* Wordle-like dark bg */
+  background-color: #121213;
+  /* Wordle-like dark bg */
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -22,14 +23,16 @@
   --color-tone-7: #121213;
 
   --color-nav-hover: #2f2f31;
-  
+
   --green: #538d4e;
   --yellow: #b59f3b;
-  
+
   --modal-content-bg: #121213;
 }
 
-*, *::before, *::after {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -46,22 +49,13 @@ body {
 
 #app {
   width: 100%;
-  max-width: 500px; /* Wordle width */
+  max-width: 500px;
+  /* Wordle width */
   margin: 0 auto;
   padding: 0;
   text-align: center;
-  height: 100vh; /* Full viewport height for app */
+  height: 100vh;
+  /* Full viewport height for app */
   display: flex;
   flex-direction: column;
-}
-
-h1 {
-  font-size: 2em;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  margin: 0;
-  padding: 10px 0;
-  border-bottom: 1px solid var(--color-tone-4);
-  color: var(--color-tone-1);
 }

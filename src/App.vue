@@ -31,11 +31,11 @@
       </div>
     </main>
 
-    <div v-if="gameState !== 'playing'" class="game-status-area">
-      <div class="status-content">
+    <div class="game-status-area">
+      <div v-if="gameState !== 'playing'" class="status-content">
         <h2 v-if="gameState === 'won'">Excellent! 🌟</h2>
         <h2 v-else>Game Over</h2>
-        <p>The word was: <strong>{{ targetWord }}</strong></p>
+        <p v-if="gameState === 'lost'">The word was: <strong>{{ targetWord }}</strong></p>
         <button @click="resetGame" class="new-game-btn">New Game</button>
       </div>
     </div>
@@ -213,7 +213,6 @@ onUnmounted(() => {
 header {
   height: auto;
   min-height: 50px;
-  border-bottom: 1px solid #3a3a3c;
   padding: 10px;
 }
 
@@ -268,10 +267,10 @@ main {
 }
 
 .game-status-area {
-  padding: 15px;
-  background: #1a1a1b;
-  border-top: 1px solid #3a3a3c;
-  border-bottom: 1px solid #3a3a3c;
+  height: 110px; /* Fixed height to prevent layout jumping */
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 100%;
 }
 

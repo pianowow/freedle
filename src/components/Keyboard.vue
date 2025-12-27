@@ -4,7 +4,7 @@
       <button
         v-for="key in row"
         :key="key"
-        :class="['key', getKeyClass(key)]"
+        :class="['key', getKeyClass(key), { 'special-key': key === 'Enter' || key === 'Backspace' }]"
         @click="$emit('keyclick', key)"
       >
         {{ key === 'Backspace' ? '⌫' : key }}
@@ -40,7 +40,7 @@ const getKeyClass = (key) => {
   flex-direction: column;
   gap: 8px;
   width: 100%;
-  max-width: 500px;
+  padding: 0 8px;
   margin: 20px auto;
 }
 
@@ -48,6 +48,7 @@ const getKeyClass = (key) => {
   display: flex;
   justify-content: center;
   gap: 6px;
+  touch-action: manipulation;
 }
 
 .key {
@@ -55,16 +56,19 @@ const getKeyClass = (key) => {
   color: white;
   border: none;
   border-radius: 4px;
-  padding: 15px 10px;
+  padding: 0;
+  height: 58px;
+  min-width: 32px;
+  max-width: 44px;
+  width: 100%;
   font-weight: bold;
   cursor: pointer;
   text-transform: uppercase;
-  min-width: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 1;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
+  user-select: none;
 }
 
 .key.correct {
@@ -83,15 +87,34 @@ const getKeyClass = (key) => {
   filter: brightness(1.2);
 }
 
-.key[class*="Enter"], .key[class*="Backspace"] {
-  flex: 1.5;
-  font-size: 0.8rem;
+.key:active {
+  transform: scale(0.95);
+}
+
+.key.special-key {
+  min-width: 52px;
+  max-width: 65px;
+  font-size: 0.7rem;
 }
 
 @media (max-width: 480px) {
+  .keyboard {
+    gap: 6px;
+    padding: 0 4px;
+  }
+  
+  .keyboard-row {
+    gap: 4px;
+  }
+
   .key {
-    padding: 12px 6px;
-    font-size: 0.9rem;
+    height: 52px;
+    min-width: 28px;
+    font-size: 0.85rem;
+  }
+
+  .key.special-key {
+    min-width: 45px;
   }
 }
 </style>
