@@ -141,8 +141,8 @@ const fetchDictionary = async () => {
     
     // Fetch dictionary (common words with definitions) and allowed words (all valid guesses)
     const [dictRes, allowedRes] = await Promise.all([
-      fetch('/data/dictionary.json'),
-      fetch('/data/allowed-words.txt')
+      fetch('data/dictionary.json'),
+      fetch('data/allowed-words.txt')
     ]);
     
     const dictData = await dictRes.json();
