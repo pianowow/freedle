@@ -7,7 +7,7 @@
         :class="['key', getKeyClass(key), { 'special-key': key === 'Enter' || key === 'Backspace' }]"
         @click="$emit('keyclick', key)"
       >
-        {{ key === 'Backspace' ? '⌫' : key }}
+        {{ key === 'Backspace' ? '⌫' : key === 'Enter' ? '⏎' : key }}
       </button>
     </div>
   </div>
@@ -62,6 +62,7 @@ const getKeyClass = (key) => {
   max-width: 44px;
   width: 100%;
   font-weight: bold;
+  font-size: 2em;
   cursor: pointer;
   text-transform: uppercase;
   display: flex;
@@ -94,7 +95,9 @@ const getKeyClass = (key) => {
 .key.special-key {
   min-width: 52px;
   max-width: 65px;
-  font-size: 0.7rem;
+  font-size: 2em;
+  background-color: #565f7c;
+  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
 }
 
 @media (max-width: 480px) {
@@ -113,8 +116,5 @@ const getKeyClass = (key) => {
     font-size: 0.85rem;
   }
 
-  .key.special-key {
-    min-width: 45px;
-  }
 }
 </style>
