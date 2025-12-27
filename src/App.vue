@@ -2,7 +2,10 @@
   <div id="app-container">
     <header>
       <div class="header-content">
-        <h1>Freedle</h1>
+        <h1>
+          <img src="/favicon-32x32.png" alt="F" class="title-icon" />
+          reedle
+        </h1>
         <div class="difficulty-selector">
           <button 
             v-for="len in [4, 5, 6]" 
@@ -623,6 +626,17 @@ h1 {
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.title-icon {
+  width: 1.3rem;
+  height: 1.3rem;
+  display: inline-block;
+  vertical-align: middle;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
 }
 
 .loading-overlay {
