@@ -5,49 +5,81 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const inputDir = path.join(__dirname, '../public/data/dictionary');
-const outputFile = path.join(__dirname, '../public/data/dictionary.json');
+const dataDir = path.join(__dirname, '../public/data');
+const dictionaryDir = path.join(dataDir, 'dictionary');
+const enTxtFile = path.join(dictionaryDir, 'en.txt');
+const allowedWordsFile = path.join(dataDir, 'allowed-words.txt');
+const commonWordsFile = path.join(dataDir, 'common-words.txt');
+const dictionaryJsonFile = path.join(dataDir, 'dictionary.json');
 
-const filteredDictionary = {};
-
-console.log('Starting word filtration...');
-
-try {
-    const files = fs.readdirSync(inputDir).filter(file => file.endsWith('.json'));
-
-    files.forEach(file => {
-        const filePath = path.join(inputDir, file);
-        console.log(`Processing ${file}...`);
-
-        try {
-            const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
-
-            for (const [key, entry] of Object.entries(data)) {
-                const word = (entry.word || key).toLowerCase();
-
-                // Filter for 4, 5, or 6 letter words AND only letters (no spaces, periods, etc.)
-                if (word.length >= 4 && word.length <= 6 && /^[a-z]+$/.test(word)) {
-                    // Remove 'id' field from each meaning
-                    const meanings = (entry.meanings || []).map(m => {
-                        const { id, ...rest } = m;
-                        return rest;
-                    });
-
-                    filteredDictionary[word] = {
-                        word: word,
-                        meanings: meanings
-                    };
-                }
-            }
-        } catch (err) {
-            console.error(`Error reading or parsing ${file}:`, err);
+async function run() {
+    try {
+        // --- Task 1: allowed-words.txt ---
+        console.log('Generating allowed-words.txt...');
+        if (!fs.existsSync(enTxtFile)) {
+            console.error(`Error: ${enTxtFile} not found.`);
+            process.exit(1);
         }
-    });
 
-    fs.writeFileSync(outputFile, JSON.stringify(filteredDictionary, null, 2));
-    console.log(`Successfully created ${outputFile} with ${Object.keys(filteredDictionary).length} words.`);
+        const enTxtContent = fs.readFileSync(enTxtFile, 'utf8');
+        const allWords = enTxtContent.split(/\r?\n/);
+        const allowedWords = [...new Set(allWords
+            .map(w => w.trim().toLowerCase())
+            .filter(word => word.length >= 4 && word.length <= 6 && /^[a-z]+$/.test(word))
+        )].sort();
 
-} catch (err) {
-    console.error('Error processing dictionary:', err);
-    process.exit(1);
+        fs.writeFileSync(allowedWordsFile, allowedWords.join('\n'));
+        console.log(`Successfully created ${allowedWordsFile} with ${allowedWords.length} words.`);
+
+        // --- Task 2: dictionary.json ---
+        console.log('Generating dictionary.json for common words...');
+        if (!fs.existsSync(commonWordsFile)) {
+            console.error(`Error: ${commonWordsFile} not found.`);
+            process.exit(1);
+        }
+
+        const commonWordsContent = fs.readFileSync(commonWordsFile, 'utf8');
+        const commonWords = new Set(
+            commonWordsContent.split(/\r?\n/)
+                .map(w => w.trim().toLowerCase())
+                .filter(word => word.length >= 4 && word.length <= 6)
+        );
+
+        const filteredDictionary = {};
+        const jsonFiles = fs.readdirSync(dictionaryDir).filter(file => file.endsWith('.json'));
+
+        jsonFiles.forEach(file => {
+            const filePath = path.join(dictionaryDir, file);
+            try {
+                const data = JSON.parse(fs.readFileSync(filePath, 'utf8'));
+
+                for (const [key, entry] of Object.entries(data)) {
+                    const word = (entry.word || key).toLowerCase();
+                    if (commonWords.has(word) && word.length >= 4 && word.length <= 6) {
+                        // Remove 'id' field from each meaning
+                        const meanings = (entry.meanings || []).map(m => {
+                            const { id, ...rest } = m;
+                            return rest;
+                        });
+
+                        filteredDictionary[word] = {
+                            word: word,
+                            meanings: meanings
+                        };
+                    }
+                }
+            } catch (err) {
+                console.error(`Error processing ${file}:`, err);
+            }
+        });
+
+        fs.writeFileSync(dictionaryJsonFile, JSON.stringify(filteredDictionary));
+        console.log(`Successfully created ${dictionaryJsonFile} with ${Object.keys(filteredDictionary).length} words.`);
+
+    } catch (err) {
+        console.error('Error:', err);
+        process.exit(1);
+    }
 }
+
+run();

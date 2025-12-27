@@ -131,27 +131,31 @@ const fetchDictionary = async () => {
   try {
     isLoading.value = true;
     
-    // Fetch dictionary and common words
-    const [dictRes, commonRes] = await Promise.all([
+    // Fetch dictionary (common words with definitions) and allowed words (all valid guesses)
+    const [dictRes, allowedRes] = await Promise.all([
       fetch('/data/dictionary.json'),
-      fetch('/data/common-words.txt')
+      fetch('/data/allowed-words.txt')
     ]);
     
     const dictData = await dictRes.json();
-    const commonText = await commonRes.text();
-    const commonSet = new Set(commonText.split('\n').map(w => w.trim().toLowerCase()));
+    const allowedText = await allowedRes.text();
     
     const valid = { 4: [], 5: [], 6: [] };
     const answers = { 4: [], 5: [], 6: [] };
     
+    // Populate valid guesses from allowed-words.txt
+    allowedText.split('\n').forEach(line => {
+      const word = line.trim().toLowerCase();
+      if (word && word.length >= 4 && word.length <= 6) {
+        valid[word.length].push(word.toUpperCase());
+      }
+    });
+
+    // Populate target answers from dictionary.json (which we filtered to common words)
     Object.keys(dictData).forEach(word => {
       const len = word.length;
-      if (valid[len]) {
-        const wordUpper = word.toUpperCase();
-        valid[len].push(wordUpper);
-        if (commonSet.has(word.toLowerCase())) {
-          answers[len].push(wordUpper);
-        }
+      if (answers[len]) {
+        answers[len].push(word.toUpperCase());
       }
     });
     
