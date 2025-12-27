@@ -1,7 +1,19 @@
 <template>
   <div id="app-container">
     <header>
-      <h1>Freeordle</h1>
+      <div class="header-content">
+        <h1>Freeordle</h1>
+        <div class="difficulty-selector">
+          <button 
+            v-for="len in [4, 5, 6]" 
+            :key="len" 
+            :class="{ active: wordLength === len }"
+            @click="setWordLength(len)"
+          >
+            {{ len }}
+          </button>
+        </div>
+      </div>
     </header>
 
     <main>
@@ -19,6 +31,15 @@
       </div>
     </main>
 
+    <div v-if="gameState !== 'playing'" class="game-status-area">
+      <div class="status-content">
+        <h2 v-if="gameState === 'won'">Excellent! 🌟</h2>
+        <h2 v-else>Game Over</h2>
+        <p>The word was: <strong>{{ targetWord }}</strong></p>
+        <button @click="resetGame" class="new-game-btn">New Game</button>
+      </div>
+    </div>
+
     <footer>
       <Keyboard :key-statuses="keyStatuses" @keyclick="handleKeyClick" />
     </footer>
@@ -34,6 +55,8 @@ import { WORDS } from './data/words';
 const wordLength = ref(5);
 const guesses = ref(['', '', '', '', '', '']);
 const currentRow = ref(0);
+const targetWord = ref('');
+const gameState = ref('playing'); // 'playing', 'won', 'lost'
 
 // Function to get a random word
 const getRandomWord = (length) => {
@@ -41,7 +64,23 @@ const getRandomWord = (length) => {
   return words[Math.floor(Math.random() * words.length)].toUpperCase();
 };
 
-const targetWord = ref(getRandomWord(wordLength.value));
+const resetGame = () => {
+  guesses.value = ['', '', '', '', '', ''];
+  currentRow.value = 0;
+  gameState.value = 'playing';
+  targetWord.value = getRandomWord(wordLength.value);
+};
+
+// Initialize game
+targetWord.value = getRandomWord(wordLength.value);
+
+const setWordLength = (len) => {
+  if (currentRow.value > 0 && !confirm('Change word length and restart game?')) {
+    return;
+  }
+  wordLength.value = len;
+  resetGame();
+};
 
 const keyStatuses = computed(() => {
   const statuses = {};
@@ -120,6 +159,8 @@ const getTileColor = (rowIndex, colIndex) => {
 };
 
 const handleKeyClick = (key) => {
+  if (gameState.value !== 'playing') return;
+  
   const currentGuess = guesses.value[currentRow.value];
   
   if (key === 'Backspace') {
@@ -128,13 +169,13 @@ const handleKeyClick = (key) => {
     if (currentGuess.length === wordLength.value) {
       // Evaluate guess
       if (currentGuess.toUpperCase() === targetWord.value) {
-        alert('You won!');
+        gameState.value = 'won';
       } else if (currentRow.value === 5) {
-        alert(`Game Over! The word was ${targetWord.value}`);
+        gameState.value = 'lost';
       }
       currentRow.value++;
     } else {
-      alert('Word too short');
+      // Could add a shake effect here
     }
   } else if (currentGuess.length < wordLength.value) {
     if (/^[A-Z]$/i.test(key)) {
@@ -153,11 +194,52 @@ const handleKeyClick = (key) => {
 }
 
 header {
-  height: 50px;
+  height: auto;
+  min-height: 50px;
   border-bottom: 1px solid #3a3a3c;
+  padding: 10px;
+}
+
+.header-content {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  justify-content: center;
+  gap: 10px;
+  width: 100%;
+}
+
+@media (min-width: 600px) {
+  .header-content {
+    flex-direction: row;
+    justify-content: space-between;
+    max-width: 500px;
+    margin: 0 auto;
+  }
+}
+
+.difficulty-selector {
+  display: flex;
+  gap: 8px;
+}
+
+.difficulty-selector button {
+  background: #3a3a3c;
+  border: 1px solid #565758;
+  color: white;
+  padding: 5px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  transition: all 0.2s;
+}
+
+.difficulty-selector button.active {
+  background: #538d4e;
+  border-color: #538d4e;
+}
+
+.difficulty-selector button:hover:not(.active) {
+  background: #4a4a4c;
 }
 
 main {
@@ -165,7 +247,50 @@ main {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 20px;
+  padding: 10px;
+}
+
+.game-status-area {
+  padding: 15px;
+  background: #1a1a1b;
+  border-top: 1px solid #3a3a3c;
+  border-bottom: 1px solid #3a3a3c;
+  width: 100%;
+}
+
+.status-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.status-content h2 {
+  margin: 0;
+  font-size: 1.2rem;
+  color: #538d4e;
+}
+
+.status-content p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.new-game-btn {
+  background: #538d4e;
+  color: white;
+  border: none;
+  padding: 8px 20px;
+  font-size: 0.9rem;
+  font-weight: bold;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.new-game-btn:hover {
+  background: #60a15a;
+  transform: translateY(-1px);
 }
 
 .game-grid {
