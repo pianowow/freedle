@@ -1,30 +1,46 @@
 <script setup>
-import HelloWorld from './components/HelloWorld.vue'
+// Game logic will go here
 </script>
 
 <template>
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="/vite.svg" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://vuejs.org/" target="_blank">
-      <img src="./assets/vue.svg" class="logo vue" alt="Vue logo" />
-    </a>
+  <div class="game-container">
+    <header>
+      <h1>Freeordle</h1>
+    </header>
+    
+    <main>
+      <!-- Game Board will go here -->
+    </main>
   </div>
-  <HelloWorld msg="Vite + Vue" />
 </template>
 
 <style scoped>
-.logo {
-  height: 6em;
-  padding: 1.5em;
-  will-change: filter;
-  transition: filter 300ms;
+.game-container {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
 }
-.logo:hover {
-  filter: drop-shadow(0 0 2em #646cffaa);
+
+header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 50px; /* Standard header height */
+  border-bottom: 1px solid var(--color-tone-4);
 }
-.logo.vue:hover {
-  filter: drop-shadow(0 0 2em #42b883aa);
+
+h1 {
+  font-size: 24px; /* Specific size for header title */
+  margin: 0;
+  border: none; /* Override global h1 border */
+  letter-spacing: 0.1rem;
+}
+
+main {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
 }
 </style>
