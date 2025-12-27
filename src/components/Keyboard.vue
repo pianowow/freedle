@@ -40,8 +40,9 @@ const getKeyClass = (key) => {
   flex-direction: column;
   gap: 8px;
   width: 100%;
-  padding: 0 8px;
+  padding: 0 10px;
   margin: 0 auto;
+  max-width: 500px;
 }
 
 .keyboard-row {
@@ -52,52 +53,62 @@ const getKeyClass = (key) => {
 }
 
 .key {
-  background-color: #818384;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(5px);
   color: white;
-  border: none;
-  border-radius: 4px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 6px;
   padding: 0;
   height: 58px;
   min-width: 32px;
   max-width: 44px;
   width: 100%;
-  font-weight: bold;
-  font-size: 2em;
+  font-weight: 700;
+  font-size: 1.1rem;
   cursor: pointer;
   text-transform: uppercase;
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: all 0.2s;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
 }
 
 .key.correct {
-  background-color: #538d4e;
+  background: linear-gradient(135deg, #538d4e 0%, #60a15a 100%);
+  border-color: #538d4e;
+  box-shadow: 0 4px 12px rgba(83, 141, 78, 0.2);
 }
 
 .key.present {
-  background-color: #b59f3b;
+  background: linear-gradient(135deg, #b59f3b 0%, #c9b458 100%);
+  border-color: #b59f3b;
+  box-shadow: 0 4px 12px rgba(181, 159, 59, 0.2);
 }
 
 .key.absent {
-  background-color: #3a3a3c;
+  background: rgba(18, 18, 19, 0.8);
+  border-color: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.2);
+  opacity: 0.5;
+  cursor: default;
 }
 
-.key:hover {
-  filter: brightness(1.2);
+.key:hover:not(.absent) {
+  background: rgba(255, 255, 255, 0.2);
+  transform: translateY(-2px);
+  border-color: rgba(255, 255, 255, 0.2);
 }
 
 .key:active {
-  transform: scale(0.95);
+  transform: scale(0.92);
 }
 
 .key.special-key {
-  min-width: 52px;
-  max-width: 65px;
-  font-size: 2em;
-  background-color: #565f7c;
-  box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+  min-width: 58px;
+  max-width: 75px;
+  font-size: 1.2rem;
+  background: rgba(255, 255, 255, 0.15);
 }
 
 @media (max-width: 480px) {
@@ -111,10 +122,41 @@ const getKeyClass = (key) => {
   }
 
   .key {
-    height: 52px;
+    height: 54px;
     min-width: 28px;
-    font-size: 0.85rem;
+    font-size: 0.95rem;
   }
 
+  .key.special-key {
+    min-width: 48px;
+    font-size: 1rem;
+  }
+}
+
+@media (max-height: 700px) {
+  .keyboard {
+    gap: 4px;
+  }
+  .key {
+    height: 48px;
+    font-size: 0.9rem;
+  }
+  .key.special-key {
+    height: 48px;
+  }
+}
+
+@media (max-height: 600px) {
+  .keyboard {
+    gap: 3px;
+  }
+  .key {
+    height: 40px;
+    font-size: 0.85rem;
+    border-radius: 4px;
+  }
+  .key.special-key {
+    height: 40px;
+  }
 }
 </style>

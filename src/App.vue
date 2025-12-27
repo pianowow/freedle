@@ -19,12 +19,14 @@
     <main>
       <div class="game-grid" :style="gridStyle">
         <template v-for="(row, rowIndex) in 6" :key="rowIndex">
-          <div class="row">
+          <div :class="['row', { 'shake': shakingRow === rowIndex } ]">
             <LetterTile
               v-for="(col, colIndex) in wordLength"
               :key="colIndex"
               :letter="getLetter(rowIndex, colIndex)"
               :color="getTileColor(rowIndex, colIndex)"
+              :delay="getTileDelay(rowIndex, colIndex)"
+              :class="{ 'winner': gameState === 'won' && rowIndex === currentRow - 1 && showWinAnimation }"
             />
           </div>
         </template>
@@ -39,15 +41,14 @@
       </Transition>
     </div>
 
-    <footer v-if="gameState === 'playing'">
-      <Keyboard :key-statuses="keyStatuses" @keyclick="handleKeyClick" />      
-    </footer>
-    <div v-else class="endgame-container">
-      <div class="status-content">
-        <h2 v-if="gameState === 'won'">Excellent! 🌟</h2>
-        <h2 v-else>Game Over</h2>
-        <p v-if="gameState === 'lost'" class="revealed-word">The word was: <strong>{{ targetWord }}</strong></p>
-          
+    <footer :class="{ 'is-endgame': gameState !== 'playing' }">
+      <Keyboard v-if="gameState === 'playing'" :key-statuses="keyStatuses" @keyclick="handleKeyClick" />
+      <div v-else class="endgame-container">
+        <div class="status-content">
+          <h2 v-if="gameState === 'won'">Excellent! 🌟</h2>
+          <h2 v-else>Game Over</h2>
+          <p v-if="gameState === 'lost'" class="revealed-word">The word was: <strong>{{ targetWord }}</strong></p>
+            
           <div v-if="targetMeanings && targetMeanings.length > 0" class="meanings-container">
             <div v-for="(m, idx) in targetMeanings" :key="idx" class="meaning-item">
               <div class="meaning-header">
@@ -64,6 +65,7 @@
           <button @click="resetGame" class="new-game-btn">New Game</button>
         </div>
       </div>
+    </footer>
     <div v-if="isLoading" class="loading-overlay">
       <div class="loader"></div>
       <p>Loading Dictionary...</p>
@@ -87,6 +89,9 @@ const targetWord = ref('');
 const targetMeanings = ref([]);
 const gameState = ref('playing'); // 'playing', 'won', 'lost'
 const message = ref('');
+const shakingRow = ref(-1);
+const showWinAnimation = ref(false);
+const keyStatuses = ref({});
 
 // Function to get a random word
 const getRandomWord = (length) => {
@@ -111,6 +116,9 @@ const resetGame = () => {
   currentRow.value = 0;
   gameState.value = 'playing';
   message.value = '';
+  shakingRow.value = -1;
+  showWinAnimation.value = false;
+  keyStatuses.value = {};
   const selected = getRandomWord(wordLength.value);
   if (selected) {
     targetWord.value = selected.word;
@@ -178,31 +186,31 @@ const setWordLength = (len) => {
   resetGame();
 };
 
-const keyStatuses = computed(() => {
-  const statuses = {};
-  for (let i = 0; i < currentRow.value; i++) {
-    const guess = guesses.value[i].toUpperCase();
-    const target = targetWord.value.toUpperCase();
+const updateKeyStatuses = (guess) => {
+  const target = targetWord.value.toUpperCase();
+  const newStatuses = { ...keyStatuses.value };
 
-    for (let j = 0; j < guess.length; j++) {
-      const letter = guess[j];
-      const currentStatus = statuses[letter];
+  guess.split('').forEach((letter, j) => {
+    const currentStatus = newStatuses[letter];
 
-      if (letter === target[j]) {
-        statuses[letter] = 'correct';
-      } else if (target.includes(letter)) {
-        if (currentStatus !== 'correct') {
-          statuses[letter] = 'present';
-        }
-      } else {
-        if (currentStatus !== 'correct' && currentStatus !== 'present') {
-          statuses[letter] = 'absent';
-        }
+    if (letter === target[j]) {
+      newStatuses[letter] = 'correct';
+    } else if (target.includes(letter)) {
+      if (currentStatus !== 'correct') {
+        newStatuses[letter] = 'present';
+      }
+    } else {
+      if (currentStatus !== 'correct' && currentStatus !== 'present') {
+        newStatuses[letter] = 'absent';
       }
     }
-  }
-  return statuses;
-});
+  });
+
+  // Update the keyboard all at once after the first tile begins to flip
+  setTimeout(() => {
+    keyStatuses.value = newStatuses;
+  }, 400);
+};
 
 const gridStyle = computed(() => ({
   '--cols': wordLength.value
@@ -210,6 +218,13 @@ const gridStyle = computed(() => ({
 
 const getLetter = (rowIndex, colIndex) => {
   return guesses.value[rowIndex][colIndex] || '';
+};
+
+const getTileDelay = (rowIndex, colIndex) => {
+  if (rowIndex === currentRow.value - 1) {
+    return `${colIndex * 150}ms`;
+  }
+  return '0ms';
 };
 
 const getTileColor = (rowIndex, colIndex) => {
@@ -269,19 +284,33 @@ const handleKeyClick = (key) => {
         
         if (!isValid) {
           message.value = 'Not in word list';
+          shakingRow.value = currentRow.value;
           setTimeout(() => {
             if (message.value === 'Not in word list') message.value = '';
-          }, 2000);
+            shakingRow.value = -1;
+          }, 600);
           return;
         }
 
+      // Update keyboard statuses after flips
+      updateKeyStatuses(guessUpper);
+
       // Evaluate guess
       if (guessUpper === targetWord.value) {
-        gameState.value = 'won';
+        currentRow.value++;
+        // Delay the win message and animation until flips are done
+        setTimeout(() => {
+          gameState.value = 'won';
+          showWinAnimation.value = true;
+        }, wordLength.value * 150 + 400);
       } else if (currentRow.value === 5) {
-        gameState.value = 'lost';
+        currentRow.value++;
+        setTimeout(() => {
+          gameState.value = 'lost';
+        }, wordLength.value * 150 + 400);
+      } else {
+        currentRow.value++;
       }
-      currentRow.value++;
       message.value = '';
     }
   } else if (currentGuess.length < wordLength.value) {
@@ -317,30 +346,31 @@ onUnmounted(() => {
   display: flex;
   flex-direction: column;
   height: 100vh;
+  height: 100dvh;
   width: 100%;
+  overflow: hidden;
 }
 
 header {
   height: auto;
-  min-height: 50px;
-  padding: 10px;
+  min-height: 40px;
+  padding: 8px 15px;
+  background: rgba(18, 18, 19, 0.9);
+  backdrop-filter: blur(10px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  position: relative;
+  z-index: 100;
 }
 
 .header-content {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  justify-content: space-between;
   align-items: center;
   gap: 10px;
   width: 100%;
-}
-
-@media (min-width: 600px) {
-  .header-content {
-    flex-direction: row;
-    justify-content: space-between;
-    max-width: 500px;
-    margin: 0 auto;
-  }
+  max-width: 500px;
+  margin: 0 auto;
 }
 
 .difficulty-selector {
@@ -349,40 +379,49 @@ header {
 }
 
 .difficulty-selector button {
-  background: #3a3a3c;
-  border: 1px solid #565758;
-  color: white;
-  padding: 5px 12px;
-  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  color: #a0a0a0;
+  padding: 6px 16px;
+  border-radius: 8px;
   cursor: pointer;
-  font-weight: bold;
-  transition: all 0.2s;
+  font-weight: 600;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-size: 0.9rem;
 }
 
 .difficulty-selector button.active {
-  background: #538d4e;
+  background: linear-gradient(135deg, #538d4e 0%, #60a15a 100%);
   border-color: #538d4e;
+  color: white;
+  box-shadow: 0 4px 15px rgba(83, 141, 78, 0.3);
+  transform: scale(1.05);
 }
 
-.difficulty-selector button:hover:not(.active) {
-  background: #4a4a4c;
+@media (max-width: 480px) {
+  .difficulty-selector button {
+    padding: 4px 10px;
+    font-size: 0.85rem;
+  }
 }
 
 main {
-  flex-grow: 1;
+  margin: 10px;
   display: flex;
   align-items: flex-start; /* Keep at top so it doesn't move */
   justify-content: center;
-  padding: 10px;
+  padding: 0 5px; /* Removed vertical padding */
+  overflow: hidden;
 }
 
 .game-status-area {
-  height: 45px;
+  flex-grow: 1;
+  height: 40px;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
-  padding: 0 20px;
+  padding: 0 10px;
 }
 
 .status-content {
@@ -391,12 +430,14 @@ main {
   align-items: center;
   gap: 4px;
   width: 100%;
+  height: 100%;
 }
 
 .status-content h2 {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: 1.3rem;
   color: #538d4e;
+  flex-shrink: 0;
 }
 
 .status-content p {
@@ -407,12 +448,16 @@ main {
 }
 
 .message-content {
-  background: #3a3a3c;
-  color: white;
-  padding: 10px 20px;
-  border-radius: 4px;
-  font-weight: bold;
+  background: #ffffff;
+  color: #121213;
+  padding: 12px 24px;
+  border-radius: 8px;
+  font-weight: 800;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
   animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05rem;
 }
 
 @keyframes shake {
@@ -429,7 +474,7 @@ main {
 }
 
 .endgame-container {
-  flex-grow: 1;
+  flex: 1;
   width: 100%;
   max-width: 500px;
   margin: 0 auto;
@@ -438,7 +483,8 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
-  max-height: 500px; /* Cap total height to match keyboard height */
+  height: 100%;
+  min-height: 0;
 }
 
 @keyframes slideUp {
@@ -449,14 +495,15 @@ main {
 .meanings-container {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 10px;
   width: 100%;
-  max-height: 300px; /* More controlled height */
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
-  padding: 12px;
+  padding: 10px;
   background: rgba(255, 255, 255, 0.05);
-  border-radius: 12px;
-  margin: 8px 0;
+  border-radius: 10px;
+  margin: 4px 0;
   text-align: left;
   border: 1px solid rgba(255, 255, 255, 0.1);
   scrollbar-width: thin;
@@ -521,13 +568,15 @@ main {
   background: #538d4e;
   color: white;
   border: none;
-  padding: 8px 20px;
-  font-size: 0.9rem;
+  padding: 10px 24px;
+  font-size: 1rem;
   font-weight: bold;
-  border-radius: 4px;
+  border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
-  margin: 10px;
+  margin: 4px 0 8px 0;
+  flex-shrink: 0;
+  width: 100%;
 }
 
 .new-game-btn:hover {
@@ -546,18 +595,34 @@ main {
   gap: 5px;
 }
 
+.row.shake {
+  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+}
+
 footer {
-  padding: 0 10px 20px 10px;
+  padding: 0 10px 8px 10px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  min-height: 220px; /* Match typical keyboard height to keep layout stable */
+  min-height: 180px; 
+  flex-shrink: 0;
+}
+
+footer.is-endgame {
+  flex: 1;
+  min-height: 200px;
+  max-height: 65%; /* Increased to give more room */
 }
 
 h1 {
-  font-size: 1.5rem;
+  font-size: 1.3rem;
   letter-spacing: 0.1rem;
+  margin: 0;
+  background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
 }
 
 .loading-overlay {
