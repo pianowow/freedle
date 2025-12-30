@@ -84,7 +84,7 @@ import Keyboard from './components/Keyboard.vue';
 const wordLength = ref(5);
 const isLoading = ref(true);
 const dictionary = ref({});
-const dictionaryWords = ref({ 4: [], 5: [], 6: [] });
+const allowedGuesses = ref({ 4: [], 5: [], 6: [] });
 const answerWords = ref({ 4: [], 5: [], 6: [] });
 const guesses = ref(['', '', '', '', '', '']);
 const currentRow = ref(0);
@@ -101,7 +101,7 @@ const getRandomWord = (length) => {
   const words = answerWords.value[length];
   
   // Fallback to dictionary words if no answers
-  let activeWords = (words && words.length > 0) ? words : dictionaryWords.value[length];
+  let activeWords = (words && words.length > 0) ? words : allowedGuesses.value[length];
   
   if (!activeWords || activeWords.length === 0) return null;
   
@@ -142,10 +142,10 @@ const fetchDictionary = async () => {
   try {
     isLoading.value = true;
     
-    // Fetch dictionary (common words with definitions) and allowed words (all valid guesses)
+    // Fetch dictionary (common words with definitions) and allowed guesses
     const [dictRes, allowedRes] = await Promise.all([
-      fetch('data/dictionary.json'),
-      fetch('data/allowed-words.txt')
+      fetch('data/target-dictionary.json'),
+      fetch('data/allowed-guesses.txt')
     ]);
     
     const dictData = await dictRes.json();
@@ -154,15 +154,15 @@ const fetchDictionary = async () => {
     const valid = { 4: [], 5: [], 6: [] };
     const answers = { 4: [], 5: [], 6: [] };
     
-    // Populate valid guesses from allowed-words.txt
+    // Populate valid guesses from allowed-guesses.txt
     allowedText.split('\n').forEach(line => {
-      const word = line.trim().toLowerCase();
+      const word = line.trim().toUpperCase();
       if (word && word.length >= 4 && word.length <= 6) {
-        valid[word.length].push(word.toUpperCase());
+        valid[word.length].push(word);
       }
     });
 
-    // Populate target answers from dictionary.json (which we filtered to common words)
+    // Populate target answers from target-dictionary.json
     Object.keys(dictData).forEach(word => {
       const len = word.length;
       if (answers[len]) {
@@ -171,7 +171,7 @@ const fetchDictionary = async () => {
     });
     
     dictionary.value = dictData;
-    dictionaryWords.value = valid;
+    allowedGuesses.value = valid;
     answerWords.value = answers;
   } catch (error) {
     console.error('Failed to load dictionary:', error);
@@ -283,7 +283,7 @@ const handleKeyClick = (key) => {
       if (currentGuess.length === wordLength.value) {
         // Validate guess against full dictionary (if not in test mode)
         const guessUpper = currentGuess.toUpperCase();
-        const isValid = dictionaryWords.value[wordLength.value].includes(guessUpper);
+        const isValid = allowedGuesses.value[wordLength.value].includes(guessUpper);
         
         if (!isValid) {
           message.value = 'Not in word list';

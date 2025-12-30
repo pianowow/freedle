@@ -5,12 +5,14 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const dataDir = path.join(__dirname, '../public/data');
-const dictionaryDir = path.join(dataDir, 'dictionary');
-const enTxtFile = path.join(dictionaryDir, 'en.txt');
-const allowedWordsFile = path.join(dataDir, 'allowed-words.txt');
+const dataDir = path.join(__dirname, '../src/data');
+const dictionaryDir = path.join(dataDir, 'wordset-dictionary');
+const enTxtFile = path.join(dataDir, 'en.txt');
 const commonWordsFile = path.join(dataDir, 'common-words.txt');
-const dictionaryJsonFile = path.join(dataDir, 'dictionary.json');
+
+const outDir = path.join(__dirname, '../public/data');
+const allowedWordsFile = path.join(outDir, 'allowed-guesses.txt');
+const dictionaryJsonFile = path.join(outDir, 'target-dictionary.json');
 
 async function run() {
     try {
