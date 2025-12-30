@@ -45,16 +45,6 @@ body {
   flex-direction: column;
 }
 
-h1 {
-  font-weight: 800;
-  text-transform: uppercase;
-  letter-spacing: 0.15rem;
-  background: linear-gradient(to bottom, #ffffff 0%, #a0a0a0 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
 
 button {
   font-family: inherit;

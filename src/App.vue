@@ -3,7 +3,7 @@
     <header>
       <div class="header-content">
         <h1>
-          <img src="/favicon-32x32.png" alt="F" class="title-icon" />
+          <img src="/apple-touch-icon.png" alt="F" class="title-icon" />
           reedle
         </h1>
         <div class="difficulty-selector">
@@ -56,9 +56,9 @@
           <div v-if="targetMeanings && targetMeanings.length > 0" class="meanings-container">
             <div v-for="(m, idx) in targetMeanings" :key="idx" class="meaning-item">
               <div class="meaning-header">
-                <span v-if="m.speech_part" class="speech-part">{{ m.speech_part }}</span>
+                 <span v-if="m.speech_part" class="speech-part">{{ m.speech_part }}</span>
+                 <p class="definition">{{ m.def }}</p>
               </div>
-              <p class="definition">{{ m.def }}</p>
               <p v-if="m.example" class="example">"{{ m.example }}"</p>
               <div v-if="m.synonyms && m.synonyms.length > 0" class="synonyms">
                 <span class="syn-label">Synonyms:</span> {{ m.synonyms.join(', ') }}
@@ -358,7 +358,7 @@ onUnmounted(() => {
 
 header {
   height: auto;
-  min-height: 40px;
+  min-height: 60px;
   padding: 8px 15px;
   background: rgba(18, 18, 19, 0.9);
   backdrop-filter: blur(10px);
@@ -374,8 +374,31 @@ header {
   align-items: center;
   gap: 10px;
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   margin: 0 auto;
+}
+
+.title-icon {
+  width: 2.5rem;
+  height: 2.5rem;
+  display: inline-block;
+  vertical-align: middle;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+}
+
+.header-content h1 {
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.15rem;
+  background: linear-gradient(to bottom, #ffffff 0%, #a0a0a0 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  font-size: 2rem;
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }
 
 .difficulty-selector {
@@ -433,6 +456,7 @@ main {
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-end;
   gap: 4px;
   width: 100%;
   height: 100%;
@@ -481,7 +505,7 @@ main {
 .endgame-container {
   flex: 1;
   width: 100%;
-  max-width: 500px;
+  max-width: 600px;
   margin: 0 auto;
   padding: 0;
   animation: slideUp 0.4s ease-out;
@@ -502,7 +526,6 @@ main {
   flex-direction: column;
   gap: 10px;
   width: 100%;
-  flex: 1;
   min-height: 0;
   overflow-y: auto;
   padding: 10px;
@@ -533,9 +556,15 @@ main {
   border-bottom: none;
 }
 
+.meaning-header {
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
 .speech-part {
-  display: inline-block;
   background: #538d4e;
+  height: 20px;
   color: white;
   font-size: 0.7rem;
   font-weight: bold;
@@ -546,7 +575,7 @@ main {
 }
 
 .definition {
-  margin: 4px 0 !important;
+  margin: 4px 4px;
   font-size: 0.95rem;
   color: #ffffff;
 }
@@ -620,26 +649,7 @@ footer.is-endgame {
   max-height: 65%; /* Increased to give more room */
 }
 
-h1 {
-  font-size: 1.3rem;
-  letter-spacing: 0.1rem;
-  margin: 0;
-  background: linear-gradient(135deg, #ffffff 0%, #a0a0a0 100%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
 
-.title-icon {
-  width: 1.3rem;
-  height: 1.3rem;
-  display: inline-block;
-  vertical-align: middle;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
-}
 
 .loading-overlay {
   position: fixed;

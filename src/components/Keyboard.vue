@@ -42,7 +42,7 @@ const getKeyClass = (key) => {
   width: 100%;
   padding: 0 10px;
   margin: 0 auto;
-  max-width: 500px;
+  max-width: 600px;
 }
 
 .keyboard-row {
@@ -61,10 +61,10 @@ const getKeyClass = (key) => {
   padding: 0;
   height: 58px;
   min-width: 32px;
-  max-width: 44px;
+  max-width: 55px;
   width: 100%;
   font-weight: 700;
-  font-size: 1.1rem;
+  font-size: 1.5rem;
   cursor: pointer;
   text-transform: uppercase;
   display: flex;

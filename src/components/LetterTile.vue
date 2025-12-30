@@ -26,13 +26,13 @@ defineProps({
 
 <style scoped>
 .letter-tile {
-  width: 58px;
-  height: 58px;
+  width: 80px;
+  height: 80px;
   border: 2px solid #3a3a3c;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2rem;
+  font-size: 2.5rem;
   font-weight: bold;
   text-transform: uppercase;
   user-select: none;
