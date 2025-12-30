@@ -37,6 +37,7 @@
     </main>
 
     <div v-if="gameState === 'playing'" class="game-status-area">
+      <ReloadPWA />
       <Transition name="fade">
         <div v-if="message" class="message-content">
           <p>{{ message }}</p>
@@ -80,6 +81,7 @@
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import LetterTile from './components/LetterTile.vue';
 import Keyboard from './components/Keyboard.vue';
+import ReloadPWA from './components/ReloadPWA.vue';
 
 const wordLength = ref(5);
 const isLoading = ref(true);
