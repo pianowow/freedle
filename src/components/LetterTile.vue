@@ -4,6 +4,7 @@
     :style="{ animationDelay: delay }"
   >
     {{ letter }}
+    <span v-if="count > 1 && color === 'correct'" class="count-badge">{{ count }}</span>
   </div>
 </template>
 
@@ -20,6 +21,10 @@ defineProps({
   delay: {
     type: String,
     default: '0ms'
+  },
+  count: {
+    type: Number,
+    default: 0
   }
 });
 </script>
@@ -109,6 +114,27 @@ defineProps({
   60% { transform: translateY(-10px); }
   80% { transform: translateY(2px); }
   100% { transform: translateY(0); }
+}
+
+.count-badge {
+  position: absolute;
+  bottom: 2px;
+  right: 3px;
+  background: rgba(0, 0, 0, 0.5);
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 700;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.letter-tile {
+  position: relative;
 }
 
 @media (max-width: 480px), (max-height: 800px) {

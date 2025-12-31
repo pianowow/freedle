@@ -5,7 +5,8 @@
         v-for="key in row"
         :key="key"
         :class="['key', getKeyClass(key), { 'special-key': key === 'Enter' || key === 'Backspace' }]"
-        @click="$emit('keyclick', key)"
+        :disabled="isKeyDisabled(key)"
+        @click="handleKeyClick(key)"
       >
         {{ key === 'Backspace' ? '⌫' : key === 'Enter' ? '⏎' : key }}
       </button>
@@ -24,13 +25,28 @@ const props = defineProps({
   keyStatuses: {
     type: Object,
     default: () => ({})
+  },
+  hardMode: {
+    type: Boolean,
+    default: false
   }
 });
 
-defineEmits(['keyclick']);
+const emit = defineEmits(['keyclick']);
 
 const getKeyClass = (key) => {
   return props.keyStatuses[key.toUpperCase()] || '';
+};
+
+const isKeyDisabled = (key) => {
+  if (!props.hardMode) return false;
+  if (key === 'Enter' || key === 'Backspace') return false;
+  return props.keyStatuses[key.toUpperCase()] === 'absent';
+};
+
+const handleKeyClick = (key) => {
+  if (isKeyDisabled(key)) return;
+  emit('keyclick', key);
 };
 </script>
 

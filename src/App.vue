@@ -6,14 +6,19 @@
           <img src="/apple-touch-icon.png" alt="F" class="title-icon" />
           reedle
         </h1>
-        <div class="difficulty-selector">
-          <button 
-            v-for="len in [4, 5, 6]" 
-            :key="len" 
-            :class="{ active: wordLength === len }"
-            @click="setWordLength(len)"
-          >
-            {{ len }}
+        <div class="header-buttons">
+          <button class="header-btn" @click="showSettingsModal = true" aria-label="Settings">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <circle cx="12" cy="12" r="3"></circle>
+              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+            </svg>
+          </button>
+          <button class="header-btn" @click="showStatsModal = true" aria-label="Statistics">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="20" x2="18" y2="10"></line>
+              <line x1="12" y1="20" x2="12" y2="4"></line>
+              <line x1="6" y1="20" x2="6" y2="14"></line>
+            </svg>
           </button>
         </div>
       </div>
@@ -29,6 +34,7 @@
               :letter="getLetter(rowIndex, colIndex)"
               :color="getTileColor(rowIndex, colIndex)"
               :delay="getTileDelay(rowIndex, colIndex)"
+              :count="getLetterCount(rowIndex, colIndex)"
               :class="{ 'winner': gameState === 'won' && rowIndex === currentRow - 1 && showWinAnimation }"
             />
           </div>
@@ -46,7 +52,7 @@
     </div>
 
     <footer :class="{ 'is-endgame': gameState !== 'playing' }">
-      <Keyboard v-if="gameState === 'playing'" :key-statuses="keyStatuses" @keyclick="handleKeyClick" />
+      <Keyboard v-if="gameState === 'playing'" :key-statuses="keyStatuses" :hard-mode="settingsStore.hardMode" @keyclick="handleKeyClick" />
       <div v-else class="endgame-container">
         <div class="status-content">
           <h2 v-if="gameState === 'won'">Excellent! 🌟</h2>
@@ -70,20 +76,61 @@
         </div>
       </div>
     </footer>
+
+    <!-- Achievement notification -->
+    <Transition name="achievement-pop">
+      <div v-if="newAchievement" class="achievement-notification">
+        <span class="achievement-icon">{{ newAchievement.icon }}</span>
+        <div class="achievement-text">
+          <span class="achievement-label">Achievement Unlocked!</span>
+          <span class="achievement-name">{{ newAchievement.name }}</span>
+        </div>
+      </div>
+    </Transition>
+
     <div v-if="isLoading" class="loading-overlay">
       <div class="loader"></div>
       <p>Loading Dictionary...</p>
     </div>
+
+    <!-- Modals -->
+    <SettingsModal 
+      :show="showSettingsModal" 
+      :is-game-in-progress="currentRow > 0 && gameState === 'playing'"
+      @close="showSettingsModal = false"
+      @word-length-change="handleWordLengthChange"
+    />
+    <StatsModal 
+      :show="showStatsModal" 
+      @close="showStatsModal = false"
+    />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import LetterTile from './components/LetterTile.vue';
 import Keyboard from './components/Keyboard.vue';
 import ReloadPWA from './components/ReloadPWA.vue';
+import SettingsModal from './components/SettingsModal.vue';
+import StatsModal from './components/StatsModal.vue';
+import { useSettingsStore } from './stores/settingsStore';
+import { useStatsStore } from './stores/statsStore';
 
-const wordLength = ref(5);
+// Stores
+const settingsStore = useSettingsStore();
+const statsStore = useStatsStore();
+
+// Word length from settings store
+const wordLength = computed(() => settingsStore.wordLength);
+
+// Modal visibility
+const showSettingsModal = ref(false);
+const showStatsModal = ref(false);
+
+// Achievement notification
+const newAchievement = ref(null);
+
 const isLoading = ref(true);
 const dictionary = ref({});
 const allowedGuesses = ref({ 4: [], 5: [], 6: [] });
@@ -183,11 +230,9 @@ const fetchDictionary = async () => {
   }
 };
 
-const setWordLength = (len) => {
-  if (currentRow.value > 0 && gameState.value === 'playing' && !confirm('Change word length and restart game?')) {
-    return;
-  }
-  wordLength.value = len;
+const handleWordLengthChange = (len) => {
+  settingsStore.setWordLength(len);
+  showSettingsModal.value = false;
   resetGame();
 };
 
@@ -274,6 +319,50 @@ const getTileColor = (rowIndex, colIndex) => {
   return 'absent';
 };
 
+// Get letter count for count mode (shows how many times a letter appears in target)
+const getLetterCount = (rowIndex, colIndex) => {
+  // Only show count if count mode is enabled and tile is from a submitted guess
+  if (!settingsStore.countMode || rowIndex >= currentRow.value) return 0;
+  
+  const guess = guesses.value[rowIndex].toUpperCase();
+  const target = targetWord.value.toUpperCase();
+  const letter = guess[colIndex];
+  
+  // Only show count for correct (green) tiles
+  if (letter !== target[colIndex]) return 0;
+  
+  // Count how many times this letter appears in the target
+  let count = 0;
+  for (let i = 0; i < target.length; i++) {
+    if (target[i] === letter) count++;
+  }
+  
+  return count;
+};
+
+// Show achievement notification
+function showAchievementNotification(achievement) {
+  newAchievement.value = achievement;
+  setTimeout(() => {
+    newAchievement.value = null;
+  }, 3000);
+}
+
+// Show achievements sequentially
+function showNewAchievements(achievements) {
+  if (achievements.length === 0) return;
+  
+  let index = 0;
+  function showNext() {
+    if (index < achievements.length) {
+      showAchievementNotification(achievements[index]);
+      index++;
+      setTimeout(showNext, 3500); // Wait for previous to finish plus small gap
+    }
+  }
+  showNext();
+}
+
 const handleKeyClick = (key) => {
   if (gameState.value !== 'playing') return;
   
@@ -297,21 +386,74 @@ const handleKeyClick = (key) => {
           return;
         }
 
+        // Hard mode validation
+        if (settingsStore.hardMode && currentRow.value > 0) {
+          const target = targetWord.value.toUpperCase();
+          
+          // Check all previous guesses for revealed hints
+          for (let prevRow = 0; prevRow < currentRow.value; prevRow++) {
+            const prevGuess = guesses.value[prevRow].toUpperCase();
+            
+            // Check green letters (must be in same position)
+            for (let i = 0; i < prevGuess.length; i++) {
+              if (prevGuess[i] === target[i] && guessUpper[i] !== prevGuess[i]) {
+                message.value = `Position ${i + 1} must be ${prevGuess[i]}`;
+                shakingRow.value = currentRow.value;
+                setTimeout(() => {
+                  message.value = '';
+                  shakingRow.value = -1;
+                }, 1500);
+                return;
+              }
+            }
+            
+            // Check yellow letters (must be present somewhere)
+            for (let i = 0; i < prevGuess.length; i++) {
+              const letter = prevGuess[i];
+              if (letter !== target[i] && target.includes(letter)) {
+                if (!guessUpper.includes(letter)) {
+                  message.value = `Guess must contain ${letter}`;
+                  shakingRow.value = currentRow.value;
+                  setTimeout(() => {
+                    message.value = '';
+                    shakingRow.value = -1;
+                  }, 1500);
+                  return;
+                }
+              }
+            }
+          }
+        }
+
       // Update keyboard statuses after flips
       updateKeyStatuses(guessUpper);
 
       // Evaluate guess
       if (guessUpper === targetWord.value) {
+        const guessCount = currentRow.value + 1;
         currentRow.value++;
         // Delay the win message and animation until flips are done
         setTimeout(() => {
           gameState.value = 'won';
           showWinAnimation.value = true;
+          // Record win and check achievements
+          const newAchievements = statsStore.recordWin(guessCount, wordLength.value, {
+            hardMode: settingsStore.hardMode,
+            countMode: settingsStore.countMode
+          });
+          if (newAchievements.length > 0) {
+            showNewAchievements(newAchievements);
+          }
         }, wordLength.value * 150 + 400);
       } else if (currentRow.value === 5) {
         currentRow.value++;
         setTimeout(() => {
           gameState.value = 'lost';
+          // Record loss and check achievements
+          const newAchievements = statsStore.recordLoss();
+          if (newAchievements.length > 0) {
+            showNewAchievements(newAchievements);
+          }
         }, wordLength.value * 150 + 400);
       } else {
         currentRow.value++;
@@ -326,6 +468,8 @@ const handleKeyClick = (key) => {
 };
 
 const handlePhysicalKeyDown = (event) => {
+  // Don't handle keyboard when modals are open
+  if (showSettingsModal.value || showStatsModal.value) return;
   if (gameState.value !== 'playing') return;
 
   const key = event.key;
@@ -401,35 +545,44 @@ header {
   gap: 4px;
 }
 
-.difficulty-selector {
+.header-buttons {
   display: flex;
   gap: 8px;
 }
 
-.difficulty-selector button {
+.header-btn {
   background: rgba(255, 255, 255, 0.05);
   border: 1px solid rgba(255, 255, 255, 0.1);
   color: #a0a0a0;
-  padding: 6px 16px;
-  border-radius: 8px;
+  width: 44px;
+  height: 44px;
+  border-radius: 10px;
   cursor: pointer;
-  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  font-size: 0.9rem;
 }
 
-.difficulty-selector button.active {
-  background: linear-gradient(135deg, #538d4e 0%, #60a15a 100%);
-  border-color: #538d4e;
-  color: white;
-  box-shadow: 0 4px 15px rgba(83, 141, 78, 0.3);
+.header-btn:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #ffffff;
   transform: scale(1.05);
 }
 
+.header-btn:active {
+  transform: scale(0.95);
+}
+
 @media (max-width: 480px) {
-  .difficulty-selector button {
-    padding: 4px 10px;
-    font-size: 0.85rem;
+  .header-btn {
+    width: 38px;
+    height: 38px;
+  }
+  
+  .header-btn svg {
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -678,6 +831,80 @@ footer.is-endgame {
 @keyframes spin {
   0% { transform: rotate(0deg); }
   100% { transform: rotate(360deg); }
+}
+
+/* Achievement notification */
+.achievement-notification {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: linear-gradient(135deg, #1e1e1f 0%, #2a2a2b 100%);
+  border: 2px solid #538d4e;
+  border-radius: 16px;
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 10px 40px rgba(83, 141, 78, 0.3);
+  z-index: 2000;
+}
+
+.achievement-notification .achievement-icon {
+  font-size: 2rem;
+}
+
+.achievement-notification .achievement-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.achievement-notification .achievement-label {
+  font-size: 0.75rem;
+  color: #538d4e;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.achievement-notification .achievement-name {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #ffffff;
+}
+
+.achievement-pop-enter-active {
+  animation: achievementIn 0.5s ease-out;
+}
+
+.achievement-pop-leave-active {
+  animation: achievementOut 0.3s ease-in;
+}
+
+@keyframes achievementIn {
+  0% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px) scale(0.8);
+  }
+  50% {
+    transform: translateX(-50%) translateY(5px) scale(1.05);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0) scale(1);
+  }
+}
+
+@keyframes achievementOut {
+  0% {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+  100% {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-20px);
+  }
 }
 
 /* Transitions */
