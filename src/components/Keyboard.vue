@@ -61,10 +61,10 @@ const getKeyClass = (key) => {
   padding: 0;
   height: 58px;
   min-width: 32px;
-  max-width: 55px;
+  max-width: 54px;
   width: 100%;
   font-weight: 700;
-  font-size: 1.5rem;
+  font-size: 2rem;
   cursor: pointer;
   text-transform: uppercase;
   display: flex;
@@ -77,13 +77,11 @@ const getKeyClass = (key) => {
 .key.correct {
   background: linear-gradient(135deg, #538d4e 0%, #60a15a 100%);
   border-color: #538d4e;
-  box-shadow: 0 4px 12px rgba(83, 141, 78, 0.2);
 }
 
 .key.present {
   background: linear-gradient(135deg, #b59f3b 0%, #c9b458 100%);
   border-color: #b59f3b;
-  box-shadow: 0 4px 12px rgba(181, 159, 59, 0.2);
 }
 
 .key.absent {
@@ -96,12 +94,7 @@ const getKeyClass = (key) => {
 
 .key:hover:not(.absent) {
   background: rgba(255, 255, 255, 0.2);
-  transform: translateY(-2px);
   border-color: rgba(255, 255, 255, 0.2);
-}
-
-.key:active {
-  transform: scale(0.92);
 }
 
 .key.special-key {

@@ -464,7 +464,7 @@ main {
 
 .status-content h2 {
   margin: 0;
-  font-size: 1.3rem;
+  font-size: 1.6rem;
   color: #538d4e;
   flex-shrink: 0;
 }
@@ -564,9 +564,9 @@ main {
 
 .speech-part {
   background: #538d4e;
-  height: 20px;
+  height: 25px;
   color: white;
-  font-size: 0.7rem;
+  font-size: 0.9rem;
   font-weight: bold;
   padding: 2px 6px;
   border-radius: 4px;
@@ -576,20 +576,20 @@ main {
 
 .definition {
   margin: 4px 4px;
-  font-size: 0.95rem;
+  font-size: 1.3rem;
   color: #ffffff;
 }
 
 .example {
   margin: 4px 0 !important;
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: #a0a0a0;
   font-style: italic;
 }
 
 .synonyms {
   margin-top: 4px;
-  font-size: 0.85rem;
+  font-size: 1rem;
   color: #818384;
 }
 
@@ -603,7 +603,7 @@ main {
   color: white;
   border: none;
   padding: 10px 24px;
-  font-size: 1rem;
+  font-size: 1.5rem;
   font-weight: bold;
   border-radius: 8px;
   cursor: pointer;
