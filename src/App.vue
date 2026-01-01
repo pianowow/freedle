@@ -474,7 +474,8 @@ const handlePhysicalKeyDown = (event) => {
     return;
   }
   let key = event.key;
-  if (key !== 'Backspace' && key !== 'Enter' && !/^[a-zA-Z]$/.test(key)) {
+  const isLetter = /^[a-zA-Z]$/.test(key);
+  if (key !== 'Backspace' && key !== 'Enter' && !isLetter) {
     return;
   } 
   if (gameState.value !== 'playing' && key == 'Enter') {
@@ -483,8 +484,15 @@ const handlePhysicalKeyDown = (event) => {
     return;
   }
   event.preventDefault();
-  if (/^[a-z]$/.test(key)) {
+  if (isLetter) {
     key = key.toUpperCase();
+    if (settingsStore.hardMode) {
+      // In hard mode, ignore letters that are known to be absent
+      const absentLetters = Object.keys(keyStatuses.value).filter(k => keyStatuses.value[k] === 'absent');
+      if (absentLetters.length > 0 && absentLetters.includes(key)) {
+        return;
+      }
+    }
   }
   handleKeyClick(key);
   const button = document.getElementById(key);
