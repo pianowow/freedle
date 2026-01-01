@@ -470,23 +470,45 @@ const handleKeyClick = (key) => {
 const handlePhysicalKeyDown = (event) => {
   // Don't handle keyboard when modals are open
   if (showSettingsModal.value || showStatsModal.value) return;
-  if (gameState.value !== 'playing') return;
+  if (event.ctrlKey || event.altKey || event.metaKey) {
+    return;
+  }
+  let key = event.key;
+  if (key !== 'Backspace' && key !== 'Enter' && !/^[a-zA-Z]$/.test(key)) {
+    return;
+  } 
+  if (gameState.value !== 'playing' && key == 'Enter') {
+    resetGame();
+  } else if (gameState.value !== 'playing') {
+    return;
+  }
   event.preventDefault();
-  const key = event.key;
-  if (key === 'Backspace' || key === 'Enter') {
-    handleKeyClick(key);
-  } else if (/^[a-zA-Z]$/.test(key)) {
-    handleKeyClick(key.toUpperCase());
+  if (/^[a-z]$/.test(key)) {
+    key = key.toUpperCase();
+  }
+  handleKeyClick(key);
+  const button = document.getElementById(key);
+  if (button) button.classList.add('active');
+};
+
+const handlePhysicalKeyUp = (event) => {
+  const activeButtons = document.getElementsByClassName('active');
+  if (activeButtons.length > 0) {
+    for (const button of activeButtons) {
+      button.classList.remove('active');
+    }
   }
 };
 
 onMounted(() => {
   window.addEventListener('keydown', handlePhysicalKeyDown);
+  window.addEventListener('keyup', handlePhysicalKeyUp);
   fetchDictionary();
 });
 
 onUnmounted(() => {
   window.removeEventListener('keydown', handlePhysicalKeyDown);
+  window.removeEventListener('keyup', handlePhysicalKeyUp);
 });
 </script>
 

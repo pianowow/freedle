@@ -5,6 +5,7 @@
     <div v-for="(row, i) in rows" :key="i" class="keyboard-row">
       <button
         v-for="key in row"
+        :id="key"
         :key="key"
         :class="['key', getKeyClass(key), { 'backspace-key':key === 'Backspace' }, { 'enter-key': key === 'Enter' }]"
         :disabled="isKeyDisabled(key)"
@@ -123,7 +124,6 @@ const handleKeyClick = (key) => {
   cursor: default;
 }
 
-
 .key.backspace-key {
   min-width: 58px;
   max-width: 75px;
@@ -145,7 +145,7 @@ const handleKeyClick = (key) => {
   background: linear-gradient(rgba(110, 169, 94, .8), rgba(83, 125, 78, .8));
 }
 
-.key:active {
+.key:active, .key.active {
   filter: brightness(0.9);
   position: relative;
   top: 1px;
