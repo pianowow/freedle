@@ -782,7 +782,7 @@ main {
 }
 
 .new-game-btn {
-  background: #538d4e;
+  background: linear-gradient(rgb(110, 169, 94), rgb(83, 125, 78));
   color: white;
   border: none;
   padding: 10px 24px;
@@ -797,7 +797,7 @@ main {
 }
 
 .new-game-btn:hover {
-  background: #60a15a;
+  background: linear-gradient(rgba(110, 169, 94, 0.8), rgba(83, 125, 78, 0.8));
   transform: translateY(-1px);
 }
 
