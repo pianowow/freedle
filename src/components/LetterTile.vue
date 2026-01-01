@@ -33,6 +33,7 @@ defineProps({
 .letter-tile {
   width: 80px;
   height: 80px;
+  color: white;
   border: 2px solid #3a3a3c;
   display: flex;
   align-items: center;
@@ -47,34 +48,29 @@ defineProps({
 }
 
 .has-letter {
-  border-color: #565758;
   animation: pop 0.1s linear 1;
 }
 
 .correct {
-  background-color: #538d4e;
-  border-color: #538d4e;
-  color: white;
+  border: 0px solid #0000;
+  background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
   animation: flip 0.6s ease-in forwards;
 }
 
 .present {
-  background-color: #b59f3b;
-  border-color: #b59f3b;
-  color: white;
+  border: 0px solid #0000;
+  background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
   animation: flip 0.6s ease-in forwards;
 }
 
 .absent {
-  background-color: #3a3a3c;
-  border-color: #3a3a3c;
-  color: white;
+  border: 0px solid #0000;
+  background: linear-gradient(rgba(77, 77, 77, 1), rgba(38, 38, 38, 1));
   animation: flip 0.6s ease-in forwards;
 }
 
 .idle {
   background-color: transparent;
-  color: white;
 }
 
 /* Animations */
@@ -137,26 +133,26 @@ defineProps({
   position: relative;
 }
 
-@media (max-width: 480px), (max-height: 800px) {
+@media (max-width: 480px), (max-height: 890px) {
   .letter-tile {
-    width: 48px;
-    height: 48px;
-    font-size: 1.6rem;
+    width: 70px;
+    height: 70px;
+    font-size: 2.3rem;
   }
 }
 
-@media (max-height: 700px) {
+@media (max-height: 835px) {
   .letter-tile {
-    width: 42px;
-    height: 42px;
-    font-size: 1.4rem;
+    width: 60px;
+    height: 60px;
+    font-size: 2.0rem;
   }
 }
 
-@media (max-height: 600px) {
+@media (max-height: 775px) {
   .letter-tile {
-    width: 36px;
-    height: 36px;
+    width: 50px;
+    height: 50px;
     font-size: 1.2rem;
     border-width: 1px;
   }

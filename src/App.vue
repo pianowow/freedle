@@ -471,7 +471,7 @@ const handlePhysicalKeyDown = (event) => {
   // Don't handle keyboard when modals are open
   if (showSettingsModal.value || showStatsModal.value) return;
   if (gameState.value !== 'playing') return;
-
+  event.preventDefault();
   const key = event.key;
   if (key === 'Backspace' || key === 'Enter') {
     handleKeyClick(key);
