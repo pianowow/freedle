@@ -572,7 +572,7 @@ header {
 }
 
 main {
-  margin: 10px;
+  margin: 10px 0px;
   display: flex;
   align-items: flex-start; /* Keep at top so it doesn't move */
   justify-content: center;
@@ -772,7 +772,7 @@ main {
 }
 
 footer {
-  padding: 0 10px 8px 10px;
+  padding: 0 0px 8px 0px;
   display: flex;
   flex-direction: column;
   align-items: center;

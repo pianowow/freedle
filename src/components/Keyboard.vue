@@ -60,7 +60,6 @@ const handleKeyClick = (key) => {
   flex-direction: column;
   gap: 8px;
   width: 100%;
-  padding: 0 10px;
   margin: 0 auto;
   max-width: 600px;
 }
@@ -168,13 +167,13 @@ const handleKeyClick = (key) => {
   }
 }
 
-@media (max-height: 630px) {
+@media (max-height: 655px) {
   .keyboard {
     gap: 4px;
   }
   .key {
     height: 48px;
-    font-size: 0.9rem;
+    font-size: 1.5rem;
   }
   .key.backspace-key {
     height: 48px;

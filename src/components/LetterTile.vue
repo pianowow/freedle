@@ -133,7 +133,7 @@ defineProps({
   position: relative;
 }
 
-@media (max-width: 480px), (max-height: 890px) {
+@media (max-width: 505px), (max-height: 893px) {
   .letter-tile {
     width: 70px;
     height: 70px;
@@ -141,7 +141,7 @@ defineProps({
   }
 }
 
-@media (max-height: 835px) {
+@media (max-width: 445px), (max-height: 835px) {
   .letter-tile {
     width: 60px;
     height: 60px;
@@ -149,10 +149,19 @@ defineProps({
   }
 }
 
-@media (max-height: 775px) {
+@media (max-width: 385px),(max-height: 775px) {
   .letter-tile {
     width: 50px;
     height: 50px;
+    font-size: 1.2rem;
+    border-width: 1px;
+  }
+}
+
+@media (max-width: 325px),(max-height: 775px) {
+  .letter-tile {
+    width: 40px;
+    height: 40px;
     font-size: 1.2rem;
     border-width: 1px;
   }
