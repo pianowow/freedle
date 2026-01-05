@@ -4,7 +4,7 @@
     :style="{ animationDelay: delay }"
   >
     {{ letter }}
-    <span v-if="count > 1 && color === 'correct'" class="count-badge">{{ count }}</span>
+    <span v-if="count > 1" class="count-badge">{{ count }}</span>
   </div>
 </template>
 

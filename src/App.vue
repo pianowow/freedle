@@ -302,8 +302,6 @@ function getLetterCount(rowIndex, colIndex) {
   const guess = guesses.value[rowIndex].toUpperCase();
   const target = targetWord.value.toUpperCase();
   const letter = guess[colIndex];
-  // Only show count for correct (green) tiles
-  if (letter !== target[colIndex]) return 0;
   // Count how many times this letter appears in the target
   let count = 0;
   for (let i = 0; i < target.length; i++) {
