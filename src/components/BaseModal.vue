@@ -21,56 +21,60 @@
 </template>
 
 <script setup>
-import { onMounted, onUnmounted, watch } from 'vue'
+import { onMounted, onUnmounted, watch } from "vue";
 
 const props = defineProps({
   show: {
     type: Boolean,
-    required: true
+    required: true,
   },
   title: {
     type: String,
-    default: ''
+    default: "",
   },
   closeOnOverlay: {
     type: Boolean,
-    default: true
-  }
-})
+    default: true,
+  },
+});
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(["close"]);
 
 function close() {
-  emit('close')
+  emit("close");
 }
 
 function handleOverlayClick() {
   if (props.closeOnOverlay) {
-    close()
+    close();
   }
 }
 
 function handleEscape(e) {
-  if (e.key === 'Escape' && props.show) {
-    close()
+  if (e.key === "Escape" && props.show) {
+    close();
   }
 }
 
 // Add/remove escape key listener
-watch(() => props.show, (newVal) => {
-  if (newVal) {
-    document.addEventListener('keydown', handleEscape)
-    document.body.style.overflow = 'hidden'
-  } else {
-    document.removeEventListener('keydown', handleEscape)
-    document.body.style.overflow = ''
-  }
-}, { immediate: true })
+watch(
+  () => props.show,
+  (newVal) => {
+    if (newVal) {
+      document.addEventListener("keydown", handleEscape);
+      document.body.style.overflow = "hidden";
+    } else {
+      document.removeEventListener("keydown", handleEscape);
+      document.body.style.overflow = "";
+    }
+  },
+  { immediate: true }
+);
 
 onUnmounted(() => {
-  document.removeEventListener('keydown', handleEscape)
-  document.body.style.overflow = ''
-})
+  document.removeEventListener("keydown", handleEscape);
+  document.body.style.overflow = "";
+});
 </script>
 
 <style scoped>

@@ -7,14 +7,44 @@
           reedle
         </h1>
         <div class="header-buttons">
-          <button class="header-btn" @click="showSettingsModal = true" aria-label="Settings">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <button
+            class="header-btn"
+            @click="showSettingsModal = true"
+            aria-label="Settings"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <circle cx="12" cy="12" r="3"></circle>
-              <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+              <path
+                d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+              ></path>
             </svg>
           </button>
-          <button class="header-btn" @click="showStatsModal = true" aria-label="Statistics">
-            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <button
+            class="header-btn"
+            @click="showStatsModal = true"
+            aria-label="Statistics"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              width="22"
+              height="22"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              stroke-width="2"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+            >
               <line x1="18" y1="20" x2="18" y2="10"></line>
               <line x1="12" y1="20" x2="12" y2="4"></line>
               <line x1="6" y1="20" x2="6" y2="14"></line>
@@ -27,7 +57,7 @@
     <main>
       <div class="game-grid" :style="gridStyle">
         <template v-for="(row, rowIndex) in 6" :key="rowIndex">
-          <div :class="['row', { 'shake': shakingRow === rowIndex } ]">
+          <div :class="['row', { shake: shakingRow === rowIndex }]">
             <LetterTile
               v-for="(col, colIndex) in wordLength"
               :key="colIndex"
@@ -35,7 +65,12 @@
               :color="getTileColor(rowIndex, colIndex)"
               :delay="getTileDelay(rowIndex, colIndex)"
               :count="getLetterCount(rowIndex, colIndex)"
-              :class="{ 'winner': gameState === 'won' && rowIndex === currentRow - 1 && showWinAnimation }"
+              :class="{
+                winner:
+                  gameState === 'won' &&
+                  rowIndex === currentRow - 1 &&
+                  showWinAnimation,
+              }"
             />
           </div>
         </template>
@@ -52,26 +87,43 @@
     </div>
 
     <footer :class="{ 'is-endgame': gameState !== 'playing' }">
-      <Keyboard v-if="gameState === 'playing'" :key-statuses="keyStatuses" :hard-mode="settingsStore.hardMode" @keyclick="handleKeyClick" />
+      <Keyboard
+        v-if="gameState === 'playing'"
+        :key-statuses="keyStatuses"
+        :hard-mode="settingsStore.hardMode"
+        @keyclick="handleKeyClick"
+      />
       <div v-else class="endgame-container">
         <div class="status-content">
           <h2 v-if="gameState === 'won'">Excellent! 🌟</h2>
           <h2 v-else>Game Over</h2>
-          <p v-if="gameState === 'lost'" class="revealed-word">The word was: <strong>{{ targetWord }}</strong></p>
-            
-          <div v-if="targetMeanings && targetMeanings.length > 0" class="meanings-container">
-            <div v-for="(m, idx) in targetMeanings" :key="idx" class="meaning-item">
+          <p v-if="gameState === 'lost'" class="revealed-word">
+            The word was: <strong>{{ targetWord }}</strong>
+          </p>
+
+          <div
+            v-if="targetMeanings && targetMeanings.length > 0"
+            class="meanings-container"
+          >
+            <div
+              v-for="(m, idx) in targetMeanings"
+              :key="idx"
+              class="meaning-item"
+            >
               <div class="meaning-header">
-                 <span v-if="m.speech_part" class="speech-part">{{ m.speech_part }}</span>
-                 <p class="definition">{{ m.def }}</p>
+                <span v-if="m.speech_part" class="speech-part">{{
+                  m.speech_part
+                }}</span>
+                <p class="definition">{{ m.def }}</p>
               </div>
               <p v-if="m.example" class="example">"{{ m.example }}"</p>
               <div v-if="m.synonyms && m.synonyms.length > 0" class="synonyms">
-                <span class="syn-label">Synonyms:</span> {{ m.synonyms.join(', ') }}
+                <span class="syn-label">Synonyms:</span>
+                {{ m.synonyms.join(", ") }}
               </div>
             </div>
           </div>
-          
+
           <button @click="resetGame" class="new-game-btn">New Game</button>
         </div>
       </div>
@@ -94,28 +146,25 @@
     </div>
 
     <!-- Modals -->
-    <SettingsModal 
-      :show="showSettingsModal" 
+    <SettingsModal
+      :show="showSettingsModal"
       :is-game-in-progress="currentRow > 0 && gameState === 'playing'"
       @close="showSettingsModal = false"
       @word-length-change="handleWordLengthChange"
     />
-    <StatsModal 
-      :show="showStatsModal" 
-      @close="showStatsModal = false"
-    />
+    <StatsModal :show="showStatsModal" @close="showStatsModal = false" />
   </div>
 </template>
 
 <script setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
-import LetterTile from './components/LetterTile.vue';
-import Keyboard from './components/Keyboard.vue';
-import ReloadPWA from './components/ReloadPWA.vue';
-import SettingsModal from './components/SettingsModal.vue';
-import StatsModal from './components/StatsModal.vue';
-import { useSettingsStore } from './stores/settingsStore';
-import { useStatsStore } from './stores/statsStore';
+import { ref, computed, onMounted, onUnmounted, watch } from "vue";
+import LetterTile from "./components/LetterTile.vue";
+import Keyboard from "./components/Keyboard.vue";
+import ReloadPWA from "./components/ReloadPWA.vue";
+import SettingsModal from "./components/SettingsModal.vue";
+import StatsModal from "./components/StatsModal.vue";
+import { useSettingsStore } from "./stores/settingsStore";
+import { useStatsStore } from "./stores/statsStore";
 
 // Stores
 const settingsStore = useSettingsStore();
@@ -135,12 +184,12 @@ const isLoading = ref(true);
 const dictionary = ref({});
 const allowedGuesses = ref({ 4: [], 5: [], 6: [] });
 const answerWords = ref({ 4: [], 5: [], 6: [] });
-const guesses = ref(['', '', '', '', '', '']);
+const guesses = ref(["", "", "", "", "", ""]);
 const currentRow = ref(0);
-const targetWord = ref('');
+const targetWord = ref("");
 const targetMeanings = ref([]);
-const gameState = ref('playing'); // 'playing', 'won', 'lost'
-const message = ref('');
+const gameState = ref("playing"); // 'playing', 'won', 'lost'
+const message = ref("");
 const shakingRow = ref(-1);
 const showWinAnimation = ref(false);
 const keyStatuses = ref({});
@@ -152,15 +201,15 @@ function getRandomWord(length) {
   const wordData = dictionary.value[selectedWord.toLowerCase()];
   return {
     word: selectedWord,
-    meanings: wordData ? wordData.meanings : []
+    meanings: wordData ? wordData.meanings : [],
   };
-};
+}
 
 function resetGame() {
-  guesses.value = ['', '', '', '', '', ''];
+  guesses.value = ["", "", "", "", "", ""];
   currentRow.value = 0;
-  gameState.value = 'playing';
-  message.value = '';
+  gameState.value = "playing";
+  message.value = "";
   shakingRow.value = -1;
   showWinAnimation.value = false;
   keyStatuses.value = {};
@@ -168,16 +217,16 @@ function resetGame() {
   if (selected) {
     targetWord.value = selected.word;
     targetMeanings.value = selected.meanings;
-    
+
     // Debug info in dev mode
     if (import.meta.env.DEV) {
       console.log(`[DEV] Target Word: ${targetWord.value}`);
     }
   }
-};
+}
 
 // Initial state
-targetWord.value = '';
+targetWord.value = "";
 targetMeanings.value = [];
 
 async function fetchDictionary() {
@@ -185,22 +234,22 @@ async function fetchDictionary() {
     isLoading.value = true;
     // Fetch dictionary (common words with definitions) and allowed guesses
     const [dictRes, allowedRes] = await Promise.all([
-      fetch('data/target-dictionary.json'),
-      fetch('data/allowed-guesses.txt')
+      fetch("data/target-dictionary.json"),
+      fetch("data/allowed-guesses.txt"),
     ]);
     const dictData = await dictRes.json();
     const allowedText = await allowedRes.text();
     const valid = { 4: [], 5: [], 6: [] };
     const answers = { 4: [], 5: [], 6: [] };
     // Populate valid guesses from allowed-guesses.txt
-    allowedText.split('\n').forEach(line => {
+    allowedText.split("\n").forEach((line) => {
       const word = line.trim().toUpperCase();
       if (word && word.length >= 4 && word.length <= 6) {
         valid[word.length].push(word);
       }
     });
     // Populate target answers from target-dictionary.json
-    Object.keys(dictData).forEach(word => {
+    Object.keys(dictData).forEach((word) => {
       const len = word.length;
       if (answers[len]) {
         answers[len].push(word.toUpperCase());
@@ -210,32 +259,32 @@ async function fetchDictionary() {
     allowedGuesses.value = valid;
     answerWords.value = answers;
   } catch (error) {
-    console.error('Failed to load dictionary:', error);
+    console.error("Failed to load dictionary:", error);
   } finally {
     isLoading.value = false;
     resetGame();
   }
-};
+}
 
 function handleWordLengthChange(len) {
   settingsStore.setWordLength(len);
   resetGame();
-};
+}
 
 function updateKeyStatuses(guess) {
   const target = targetWord.value.toUpperCase();
   const newStatuses = { ...keyStatuses.value };
-  guess.split('').forEach((letter, j) => {
+  guess.split("").forEach((letter, j) => {
     const currentStatus = newStatuses[letter];
     if (letter === target[j]) {
-      newStatuses[letter] = 'correct';
+      newStatuses[letter] = "correct";
     } else if (target.includes(letter)) {
-      if (currentStatus !== 'correct') {
-        newStatuses[letter] = 'present';
+      if (currentStatus !== "correct") {
+        newStatuses[letter] = "present";
       }
     } else {
-      if (currentStatus !== 'correct' && currentStatus !== 'present') {
-        newStatuses[letter] = 'absent';
+      if (currentStatus !== "correct" && currentStatus !== "present") {
+        newStatuses[letter] = "absent";
       }
     }
   });
@@ -243,31 +292,31 @@ function updateKeyStatuses(guess) {
   setTimeout(() => {
     keyStatuses.value = newStatuses;
   }, 150);
-};
+}
 
 const gridStyle = computed(() => ({
-  '--cols': wordLength.value
+  "--cols": wordLength.value,
 }));
 
 function getLetter(rowIndex, colIndex) {
-  return guesses.value[rowIndex][colIndex] || '';
-};
+  return guesses.value[rowIndex][colIndex] || "";
+}
 
 function getTileDelay(rowIndex, colIndex) {
   if (rowIndex === currentRow.value - 1) {
     return `${colIndex * 150}ms`;
   }
-  return '0ms';
-};
+  return "0ms";
+}
 
 const getTileColor = (rowIndex, colIndex) => {
-  if (rowIndex >= currentRow.value) return 'idle';
+  if (rowIndex >= currentRow.value) return "idle";
   const guess = guesses.value[rowIndex].toUpperCase();
   const target = targetWord.value.toUpperCase();
   const letter = guess[colIndex];
   // 1. Correct position
   if (letter === target[colIndex]) {
-    return 'correct';
+    return "correct";
   }
   // 2. Present/Absent logic with count handling
   // Count how many of this letter are in the target word
@@ -289,10 +338,13 @@ const getTileColor = (rowIndex, colIndex) => {
     }
   }
   // If (correctCount + presentBeforeCount) < targetCount, this one can be yellow
-  if (target.includes(letter) && (correctCount + presentBeforeCount) < targetCount) {
-    return 'present';
+  if (
+    target.includes(letter) &&
+    correctCount + presentBeforeCount < targetCount
+  ) {
+    return "present";
   }
-  return 'absent';
+  return "absent";
 };
 
 // Get letter count for count mode (shows how many times a letter appears in target)
@@ -308,7 +360,7 @@ function getLetterCount(rowIndex, colIndex) {
     if (target[i] === letter) count++;
   }
   return count;
-};
+}
 
 // Show achievement notification
 function showAchievementNotification(achievement) {
@@ -333,59 +385,60 @@ function showNewAchievements(achievements) {
 }
 
 function handleKeyClick(key) {
-  if (gameState.value !== 'playing') return;
+  if (gameState.value !== "playing") return;
   const currentGuess = guesses.value[currentRow.value];
-  if (key === 'Backspace') {
+  if (key === "Backspace") {
     guesses.value[currentRow.value] = currentGuess.slice(0, -1);
-    } else if (key === 'Enter') {
-      if (currentGuess.length === wordLength.value) {
-        // Validate guess against full dictionary (if not in test mode)
-        const guessUpper = currentGuess.toUpperCase();
-        const isValid = allowedGuesses.value[wordLength.value].includes(guessUpper);
-        if (!isValid) {
-          message.value = 'Not in word list';
-          shakingRow.value = currentRow.value;
-          setTimeout(() => {
-            if (message.value === 'Not in word list') message.value = '';
-            shakingRow.value = -1;
-          }, 600);
-          return;
-        }
-        // Hard mode validation
-        if (settingsStore.hardMode && currentRow.value > 0) {
-          const target = targetWord.value.toUpperCase();
-          // Check all previous guesses for revealed hints
-          for (let prevRow = 0; prevRow < currentRow.value; prevRow++) {
-            const prevGuess = guesses.value[prevRow].toUpperCase();
-            // Check green letters (must be in same position)
-            for (let i = 0; i < prevGuess.length; i++) {
-              if (prevGuess[i] === target[i] && guessUpper[i] !== prevGuess[i]) {
-                message.value = `Position ${i + 1} must be ${prevGuess[i]}`;
+  } else if (key === "Enter") {
+    if (currentGuess.length === wordLength.value) {
+      // Validate guess against full dictionary (if not in test mode)
+      const guessUpper = currentGuess.toUpperCase();
+      const isValid =
+        allowedGuesses.value[wordLength.value].includes(guessUpper);
+      if (!isValid) {
+        message.value = "Not in word list";
+        shakingRow.value = currentRow.value;
+        setTimeout(() => {
+          if (message.value === "Not in word list") message.value = "";
+          shakingRow.value = -1;
+        }, 600);
+        return;
+      }
+      // Hard mode validation
+      if (settingsStore.hardMode && currentRow.value > 0) {
+        const target = targetWord.value.toUpperCase();
+        // Check all previous guesses for revealed hints
+        for (let prevRow = 0; prevRow < currentRow.value; prevRow++) {
+          const prevGuess = guesses.value[prevRow].toUpperCase();
+          // Check green letters (must be in same position)
+          for (let i = 0; i < prevGuess.length; i++) {
+            if (prevGuess[i] === target[i] && guessUpper[i] !== prevGuess[i]) {
+              message.value = `Position ${i + 1} must be ${prevGuess[i]}`;
+              shakingRow.value = currentRow.value;
+              setTimeout(() => {
+                message.value = "";
+                shakingRow.value = -1;
+              }, 1500);
+              return;
+            }
+          }
+          // Check yellow letters (must be present somewhere)
+          for (let i = 0; i < prevGuess.length; i++) {
+            const letter = prevGuess[i];
+            if (letter !== target[i] && target.includes(letter)) {
+              if (!guessUpper.includes(letter)) {
+                message.value = `Guess must contain ${letter}`;
                 shakingRow.value = currentRow.value;
                 setTimeout(() => {
-                  message.value = '';
+                  message.value = "";
                   shakingRow.value = -1;
                 }, 1500);
                 return;
               }
             }
-            // Check yellow letters (must be present somewhere)
-            for (let i = 0; i < prevGuess.length; i++) {
-              const letter = prevGuess[i];
-              if (letter !== target[i] && target.includes(letter)) {
-                if (!guessUpper.includes(letter)) {
-                  message.value = `Guess must contain ${letter}`;
-                  shakingRow.value = currentRow.value;
-                  setTimeout(() => {
-                    message.value = '';
-                    shakingRow.value = -1;
-                  }, 1500);
-                  return;
-                }
-              }
-            }
           }
         }
+      }
       // Update keyboard statuses after flips
       updateKeyStatuses(guessUpper);
       // Evaluate guess
@@ -394,13 +447,17 @@ function handleKeyClick(key) {
         currentRow.value++;
         // Delay the win message and animation until flips are done
         setTimeout(() => {
-          gameState.value = 'won';
+          gameState.value = "won";
           showWinAnimation.value = true;
           // Record win and check achievements
-          const newAchievements = statsStore.recordWin(guessCount, wordLength.value, {
-            hardMode: settingsStore.hardMode,
-            countMode: settingsStore.countMode
-          });
+          const newAchievements = statsStore.recordWin(
+            guessCount,
+            wordLength.value,
+            {
+              hardMode: settingsStore.hardMode,
+              countMode: settingsStore.countMode,
+            }
+          );
           if (newAchievements.length > 0) {
             showNewAchievements(newAchievements);
           }
@@ -408,7 +465,7 @@ function handleKeyClick(key) {
       } else if (currentRow.value === 5) {
         currentRow.value++;
         setTimeout(() => {
-          gameState.value = 'lost';
+          gameState.value = "lost";
           // Record loss and check achievements
           const newAchievements = statsStore.recordLoss();
           if (newAchievements.length > 0) {
@@ -418,14 +475,14 @@ function handleKeyClick(key) {
       } else {
         currentRow.value++;
       }
-      message.value = '';
+      message.value = "";
     }
   } else if (currentGuess.length < wordLength.value) {
     if (/^[A-Z]$/i.test(key)) {
       guesses.value[currentRow.value] += key.toUpperCase();
     }
   }
-};
+}
 
 function handlePhysicalKeyDown(event) {
   // Don't handle keyboard when modals are open
@@ -433,15 +490,17 @@ function handlePhysicalKeyDown(event) {
   if (event.ctrlKey || event.altKey || event.metaKey) return;
   let key = event.key;
   const isLetter = /^[a-zA-Z]$/.test(key);
-  if (key !== 'Backspace' && key !== 'Enter' && !isLetter) return;
-  if (gameState.value !== 'playing' && key == 'Enter') resetGame();
-  else if (gameState.value !== 'playing') return;
+  if (key !== "Backspace" && key !== "Enter" && !isLetter) return;
+  if (gameState.value !== "playing" && key == "Enter") resetGame();
+  else if (gameState.value !== "playing") return;
   event.preventDefault();
   if (isLetter) {
     key = key.toUpperCase();
     if (settingsStore.hardMode) {
       // In hard mode, ignore letters that are known to be absent
-      const absentLetters = Object.keys(keyStatuses.value).filter(k => keyStatuses.value[k] === 'absent');
+      const absentLetters = Object.keys(keyStatuses.value).filter(
+        (k) => keyStatuses.value[k] === "absent"
+      );
       if (absentLetters.length > 0 && absentLetters.includes(key)) {
         return;
       }
@@ -449,27 +508,27 @@ function handlePhysicalKeyDown(event) {
   }
   handleKeyClick(key);
   const button = document.getElementById(key);
-  if (button) button.classList.add('active');
-};
+  if (button) button.classList.add("active");
+}
 
 function handlePhysicalKeyUp(event) {
-  const activeButtons = document.getElementsByClassName('active');
+  const activeButtons = document.getElementsByClassName("active");
   if (activeButtons.length > 0) {
     for (const button of activeButtons) {
-      button.classList.remove('active');
+      button.classList.remove("active");
     }
   }
-};
+}
 
 onMounted(() => {
-  window.addEventListener('keydown', handlePhysicalKeyDown);
-  window.addEventListener('keyup', handlePhysicalKeyUp);
+  window.addEventListener("keydown", handlePhysicalKeyDown);
+  window.addEventListener("keyup", handlePhysicalKeyUp);
   fetchDictionary();
 });
 
 onUnmounted(() => {
-  window.removeEventListener('keydown', handlePhysicalKeyDown);
-  window.removeEventListener('keyup', handlePhysicalKeyUp);
+  window.removeEventListener("keydown", handlePhysicalKeyDown);
+  window.removeEventListener("keyup", handlePhysicalKeyUp);
 });
 </script>
 
@@ -562,7 +621,7 @@ header {
     width: 38px;
     height: 38px;
   }
-  
+
   .header-btn svg {
     width: 18px;
     height: 18px;
@@ -618,18 +677,31 @@ main {
   padding: 12px 24px;
   border-radius: 8px;
   font-weight: 800;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.5);
-  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.05rem;
 }
 
 @keyframes shake {
-  10%, 90% { transform: translate3d(-1px, 0, 0); }
-  20%, 80% { transform: translate3d(2px, 0, 0); }
-  30%, 50%, 70% { transform: translate3d(-4px, 0, 0); }
-  40%, 60% { transform: translate3d(4px, 0, 0); }
+  10%,
+  90% {
+    transform: translate3d(-1px, 0, 0);
+  }
+  20%,
+  80% {
+    transform: translate3d(2px, 0, 0);
+  }
+  30%,
+  50%,
+  70% {
+    transform: translate3d(-4px, 0, 0);
+  }
+  40%,
+  60% {
+    transform: translate3d(4px, 0, 0);
+  }
 }
 
 .word-definition {
@@ -653,8 +725,14 @@ main {
 }
 
 @keyframes slideUp {
-  from { transform: translateY(20px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
 .meanings-container {
@@ -766,7 +844,7 @@ main {
 }
 
 .row.shake {
-  animation: shake 0.5s cubic-bezier(.36,.07,.19,.97) both;
+  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
 }
 
 footer {
@@ -775,7 +853,7 @@ footer {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  min-height: 180px; 
+  min-height: 180px;
   flex-shrink: 0;
 }
 
@@ -784,8 +862,6 @@ footer.is-endgame {
   min-height: 200px;
   max-height: 65%; /* Increased to give more room */
 }
-
-
 
 .loading-overlay {
   position: fixed;
@@ -812,8 +888,12 @@ footer.is-endgame {
 }
 
 @keyframes spin {
-  0% { transform: rotate(0deg); }
-  100% { transform: rotate(360deg); }
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
 }
 
 /* Achievement notification */
@@ -900,5 +980,4 @@ footer.is-endgame {
 .fade-leave-to {
   opacity: 0;
 }
-
 </style>

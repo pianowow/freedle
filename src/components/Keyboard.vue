@@ -1,5 +1,3 @@
-// todo: expose method for visualizing virtual button press when physical key is pressed
-
 <template>
   <div class="keyboard">
     <div v-for="(row, i) in rows" :key="i" class="keyboard-row">
@@ -7,11 +5,16 @@
         v-for="key in row"
         :id="key"
         :key="key"
-        :class="['key', getKeyClass(key), { 'backspace-key':key === 'Backspace' }, { 'enter-key': key === 'Enter' }]"
+        :class="[
+          'key',
+          getKeyClass(key),
+          { 'backspace-key': key === 'Backspace' },
+          { 'enter-key': key === 'Enter' },
+        ]"
         :disabled="isKeyDisabled(key)"
         @click="handleKeyClick(key)"
       >
-        {{ key === 'Backspace' ? '⌫' : key === 'Enter' ? 'Submit' : key }}
+        {{ key === "Backspace" ? "⌫" : key === "Enter" ? "Submit" : key }}
       </button>
     </div>
   </div>
@@ -19,38 +22,38 @@
 
 <script setup>
 const rows = [
-  ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P'],
-  ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L'],
-  ['Z', 'X', 'C', 'V', 'B', 'N', 'M', 'Backspace'],
-  ['Enter']
+  ["Q", "W", "E", "R", "T", "Y", "U", "I", "O", "P"],
+  ["A", "S", "D", "F", "G", "H", "J", "K", "L"],
+  ["Z", "X", "C", "V", "B", "N", "M", "Backspace"],
+  ["Enter"],
 ];
 
 const props = defineProps({
   keyStatuses: {
     type: Object,
-    default: () => ({})
+    default: () => ({}),
   },
   hardMode: {
     type: Boolean,
-    default: false
-  }
+    default: false,
+  },
 });
 
-const emit = defineEmits(['keyclick']);
+const emit = defineEmits(["keyclick"]);
 
 const getKeyClass = (key) => {
-  return props.keyStatuses[key.toUpperCase()] || '';
+  return props.keyStatuses[key.toUpperCase()] || "";
 };
 
 const isKeyDisabled = (key) => {
   if (!props.hardMode) return false;
-  if (key === 'Enter' || key === 'Backspace') return false;
-  return props.keyStatuses[key.toUpperCase()] === 'absent';
+  if (key === "Enter" || key === "Backspace") return false;
+  return props.keyStatuses[key.toUpperCase()] === "absent";
 };
 
 const handleKeyClick = (key) => {
   if (isKeyDisabled(key)) return;
-  emit('keyclick', key);
+  emit("keyclick", key);
 };
 </script>
 
@@ -98,7 +101,7 @@ const handleKeyClick = (key) => {
 }
 
 .key:hover:not(.absent) {
-  background: linear-gradient(rgba(77, 77, 77, .8), rgba(38, 38, 38, .8));
+  background: linear-gradient(rgba(77, 77, 77, 0.8), rgba(38, 38, 38, 0.8));
 }
 
 .key.correct {
@@ -141,10 +144,11 @@ const handleKeyClick = (key) => {
 }
 
 .key.enter-key:hover {
-  background: linear-gradient(rgba(110, 169, 94, .8), rgba(83, 125, 78, .8));
+  background: linear-gradient(rgba(110, 169, 94, 0.8), rgba(83, 125, 78, 0.8));
 }
 
-.key:active, .key.active {
+.key:active,
+.key.active {
   filter: brightness(0.9);
   position: relative;
   top: 1px;

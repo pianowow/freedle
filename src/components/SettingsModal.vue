@@ -8,9 +8,9 @@
           <span class="setting-description">Choose the number of letters</span>
         </div>
         <div class="word-length-selector">
-          <button 
-            v-for="len in [4, 5, 6]" 
-            :key="len" 
+          <button
+            v-for="len in [4, 5, 6]"
+            :key="len"
             :class="{ active: settingsStore.wordLength === len }"
             @click="handleWordLengthChange(len)"
           >
@@ -20,15 +20,17 @@
       </div>
 
       <!-- Hard Mode Setting -->
-      <div :class="['setting-group', { 'disabled': isGameInProgress }]">
+      <div :class="['setting-group', { disabled: isGameInProgress }]">
         <div class="setting-label">
           <span class="setting-title">Hard Mode</span>
-          <span class="setting-description">Revealed hints must be used in subsequent guesses</span>
+          <span class="setting-description"
+            >Revealed hints must be used in subsequent guesses</span
+          >
         </div>
         <div class="toggle-switch">
-          <input 
-            type="checkbox" 
-            id="hard-mode" 
+          <input
+            type="checkbox"
+            id="hard-mode"
             :disabled="isGameInProgress"
             :checked="settingsStore.hardMode"
             @change="handleHardModeChange"
@@ -41,12 +43,14 @@
       <div class="setting-group">
         <div class="setting-label">
           <span class="setting-title">Count Mode</span>
-          <span class="setting-description">Shows count on green tiles when letter appears multiple times</span>
+          <span class="setting-description"
+            >Shows count on green tiles when letter appears multiple times</span
+          >
         </div>
         <div class="toggle-switch">
-          <input 
-            type="checkbox" 
-            id="count-mode" 
+          <input
+            type="checkbox"
+            id="count-mode"
             :checked="settingsStore.countMode"
             @change="settingsStore.setCountMode($event.target.checked)"
           />
@@ -58,42 +62,42 @@
 </template>
 
 <script setup>
-import BaseModal from './BaseModal.vue'
-import { useSettingsStore } from '../stores/settingsStore'
+import BaseModal from "./BaseModal.vue";
+import { useSettingsStore } from "../stores/settingsStore";
 
 const props = defineProps({
   show: {
     type: Boolean,
-    required: true
+    required: true,
   },
   isGameInProgress: {
     type: Boolean,
-    default: false
-  }
-})
+    default: false,
+  },
+});
 
-const emit = defineEmits(['close', 'word-length-change'])
+const emit = defineEmits(["close", "word-length-change"]);
 
-const settingsStore = useSettingsStore()
+const settingsStore = useSettingsStore();
 
 function handleWordLengthChange(len) {
-  if (len === settingsStore.wordLength) return
-  
+  if (len === settingsStore.wordLength) return;
+
   if (props.isGameInProgress) {
-    if (confirm('Change word length and restart game?')) {
-      emit('word-length-change', len)
+    if (confirm("Change word length and restart game?")) {
+      emit("word-length-change", len);
     }
   } else {
-    emit('word-length-change', len)
+    emit("word-length-change", len);
   }
 }
 
 function handleHardModeChange(event) {
   if (props.isGameInProgress) {
-    event.target.checked = settingsStore.hardMode
-    return
+    event.target.checked = settingsStore.hardMode;
+    return;
   }
-  settingsStore.setHardMode(event.target.checked)
+  settingsStore.setHardMode(event.target.checked);
 }
 </script>
 

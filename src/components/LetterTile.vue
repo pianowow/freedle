@@ -1,5 +1,5 @@
 <template>
-  <div 
+  <div
     :class="['letter-tile', color, { 'has-letter': letter }]"
     :style="{ animationDelay: delay }"
   >
@@ -12,20 +12,20 @@
 defineProps({
   letter: {
     type: String,
-    default: ''
+    default: "",
   },
   color: {
     type: String,
-    default: 'idle' // 'correct', 'present', 'absent', 'idle'
+    default: "idle", // 'correct', 'present', 'absent', 'idle'
   },
   delay: {
     type: String,
-    default: '0ms'
+    default: "0ms",
   },
   count: {
     type: Number,
-    default: 0
-  }
+    default: 0,
+  },
 });
 </script>
 
@@ -75,9 +75,15 @@ defineProps({
 
 /* Animations */
 @keyframes pop {
-  0% { transform: scale(1); }
-  50% { transform: scale(1.1); }
-  100% { transform: scale(1); }
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+  100% {
+    transform: scale(1);
+  }
 }
 
 @keyframes flip {
@@ -104,12 +110,25 @@ defineProps({
 }
 
 @keyframes bounce {
-  0%, 20% { transform: translateY(0); }
-  40% { transform: translateY(-20px); }
-  50% { transform: translateY(5px); }
-  60% { transform: translateY(-10px); }
-  80% { transform: translateY(2px); }
-  100% { transform: translateY(0); }
+  0%,
+  20% {
+    transform: translateY(0);
+  }
+  40% {
+    transform: translateY(-20px);
+  }
+  50% {
+    transform: translateY(5px);
+  }
+  60% {
+    transform: translateY(-10px);
+  }
+  80% {
+    transform: translateY(2px);
+  }
+  100% {
+    transform: translateY(0);
+  }
 }
 
 .count-badge {
@@ -145,11 +164,11 @@ defineProps({
   .letter-tile {
     width: 60px;
     height: 60px;
-    font-size: 2.0rem;
+    font-size: 2rem;
   }
 }
 
-@media (max-width: 385px),(max-height: 775px) {
+@media (max-width: 385px), (max-height: 775px) {
   .letter-tile {
     width: 50px;
     height: 50px;
@@ -158,7 +177,7 @@ defineProps({
   }
 }
 
-@media (max-width: 325px),(max-height: 775px) {
+@media (max-width: 325px), (max-height: 775px) {
   .letter-tile {
     width: 40px;
     height: 40px;

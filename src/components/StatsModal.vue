@@ -25,19 +25,17 @@
       <div class="distribution-section">
         <h3>Guess Distribution</h3>
         <div class="distribution-chart">
-          <div 
-            v-for="num in 6" 
-            :key="num" 
-            class="distribution-row"
-          >
+          <div v-for="num in 6" :key="num" class="distribution-row">
             <span class="guess-num">{{ num }}</span>
             <div class="bar-container">
-              <div 
-                class="bar" 
+              <div
+                class="bar"
                 :style="{ width: getBarWidth(num) }"
                 :class="{ 'has-value': statsStore.guessDistribution[num] > 0 }"
               >
-                <span class="bar-value">{{ statsStore.guessDistribution[num] }}</span>
+                <span class="bar-value">{{
+                  statsStore.guessDistribution[num]
+                }}</span>
               </div>
             </div>
           </div>
@@ -47,24 +45,26 @@
       <!-- Achievements Section -->
       <div class="achievements-section">
         <h3>
-          Achievements 
+          Achievements
           <span class="achievement-count">
             ({{ statsStore.unlockedCount }}/{{ statsStore.totalAchievements }})
           </span>
         </h3>
         <div class="achievements-grid">
-          <div 
-            v-for="achievement in statsStore.allAchievements" 
+          <div
+            v-for="achievement in statsStore.allAchievements"
             :key="achievement.id"
             class="achievement-item"
             :class="{ unlocked: achievement.unlocked }"
           >
             <span class="achievement-icon">
-              {{ achievement.unlocked ? achievement.icon : '🔒' }}
+              {{ achievement.unlocked ? achievement.icon : "🔒" }}
             </span>
             <div class="achievement-info">
               <span class="achievement-name">{{ achievement.name }}</span>
-              <span class="achievement-desc">{{ achievement.description }}</span>
+              <span class="achievement-desc">{{
+                achievement.description
+              }}</span>
             </div>
           </div>
         </div>
@@ -74,31 +74,31 @@
 </template>
 
 <script setup>
-import { computed } from 'vue'
-import BaseModal from './BaseModal.vue'
-import { useStatsStore } from '../stores/statsStore'
+import { computed } from "vue";
+import BaseModal from "./BaseModal.vue";
+import { useStatsStore } from "../stores/statsStore";
 
 defineProps({
   show: {
     type: Boolean,
-    required: true
-  }
-})
+    required: true,
+  },
+});
 
-defineEmits(['close'])
+defineEmits(["close"]);
 
-const statsStore = useStatsStore()
+const statsStore = useStatsStore();
 
 // Calculate the maximum value for bar scaling
 const maxGuesses = computed(() => {
-  return Math.max(...Object.values(statsStore.guessDistribution), 1)
-})
+  return Math.max(...Object.values(statsStore.guessDistribution), 1);
+});
 
 function getBarWidth(guessNum) {
-  const value = statsStore.guessDistribution[guessNum]
-  if (value === 0) return '0%'
-  const percentage = (value / maxGuesses.value) * 100
-  return `${Math.max(percentage, 8)}%` // Minimum 8% width when there's a value
+  const value = statsStore.guessDistribution[guessNum];
+  if (value === 0) return "0%";
+  const percentage = (value / maxGuesses.value) * 100;
+  return `${Math.max(percentage, 8)}%`; // Minimum 8% width when there's a value
 }
 </script>
 
@@ -285,7 +285,7 @@ function getBarWidth(guessNum) {
     grid-template-columns: repeat(2, 1fr);
     gap: 16px;
   }
-  
+
   .stat-value {
     font-size: 1.5rem;
   }

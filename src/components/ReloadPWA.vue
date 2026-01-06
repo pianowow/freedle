@@ -1,25 +1,13 @@
 <script setup>
-import { useRegisterSW } from 'virtual:pwa-register/vue'
+import { useRegisterSW } from "virtual:pwa-register/vue";
 
-const {
-  offlineReady,
-  needRefresh,
-  updateServiceWorker,
-} = useRegisterSW()
+const { offlineReady, needRefresh, updateServiceWorker } = useRegisterSW();
 </script>
 
 <template>
-  <div
-    v-if="needRefresh"
-    class="pwa-toast"
-    role="alert"
-  >
-    <div class="message">
-      New version available!
-    </div>
-    <button @click="updateServiceWorker()">
-      Reload
-    </button>
+  <div v-if="needRefresh" class="pwa-toast" role="alert">
+    <div class="message">New version available!</div>
+    <button @click="updateServiceWorker()">Reload</button>
   </div>
 </template>
 
