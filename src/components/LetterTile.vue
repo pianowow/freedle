@@ -31,6 +31,7 @@ defineProps({
 
 <style scoped>
 .letter-tile {
+  position: relative;
   width: 80px;
   height: 80px;
   color: white;
@@ -148,11 +149,7 @@ defineProps({
   line-height: 1;
 }
 
-.letter-tile {
-  position: relative;
-}
-
-@media (max-width: 505px), (max-height: 893px) {
+@media (max-width: 505px), (max-height: 925px) {
   .letter-tile {
     width: 70px;
     height: 70px;
@@ -160,7 +157,7 @@ defineProps({
   }
 }
 
-@media (max-width: 445px), (max-height: 835px) {
+@media (max-width: 445px), (max-height: 862px) {
   .letter-tile {
     width: 60px;
     height: 60px;
@@ -168,7 +165,7 @@ defineProps({
   }
 }
 
-@media (max-width: 385px), (max-height: 775px) {
+@media (max-width: 385px), (max-height: 802px) {
   .letter-tile {
     width: 50px;
     height: 50px;
@@ -177,7 +174,7 @@ defineProps({
   }
 }
 
-@media (max-width: 325px), (max-height: 775px) {
+@media (max-width: 325px), (max-height: 742px) {
   .letter-tile {
     width: 40px;
     height: 40px;

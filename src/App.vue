@@ -37,12 +37,8 @@
     </main>
 
     <div v-if="gameState === 'playing'" class="game-status-area">
-      <ReloadPWA />
-      <Transition name="fade">
-        <div v-if="message" class="message-content">
-          <p>{{ message }}</p>
-        </div>
-      </Transition>
+      <ReloadToast :show="needRefresh" @reload="updateServiceWorker()" />
+      <ValidationToast :show="!!message" :message="message || ''" />
     </div>
 
     <footer :class="{ 'is-endgame': gameState !== 'playing' }">
@@ -88,16 +84,10 @@
       </div>
     </footer>
 
-    <!-- Achievement notification -->
-    <Transition name="achievement-pop">
-      <div v-if="newAchievement" class="achievement-notification">
-        <span class="achievement-icon">{{ newAchievement.icon }}</span>
-        <div class="achievement-text">
-          <span class="achievement-label">Achievement Unlocked!</span>
-          <span class="achievement-name">{{ newAchievement.name }}</span>
-        </div>
-      </div>
-    </Transition>
+    <AchievementToast
+      :show="!!newAchievement"
+      :achievement="newAchievement || {}"
+    />
 
     <div v-if="isLoading" class="loading-overlay">
       <div class="loader"></div>
@@ -119,13 +109,19 @@
 import { ref, onMounted, onUnmounted } from "vue";
 import LetterTile from "./components/LetterTile.vue";
 import Keyboard from "./components/Keyboard.vue";
-import ReloadPWA from "./components/ReloadPWA.vue";
+import { useRegisterSW } from "virtual:pwa-register/vue";
+import AchievementToast from "./components/AchievementToast.vue";
+import ValidationToast from "./components/ValidationToast.vue";
+import ReloadToast from "./components/ReloadToast.vue";
 import SettingsModal from "./components/SettingsModal.vue";
 import StatsModal from "./components/StatsModal.vue";
 import SettingsIcon from "./components/SettingsIcon.vue";
 import StatisticsIcon from "./components/StatisticsIcon.vue";
 import { useSettingsStore } from "./stores/settingsStore";
 import { useGame } from "./composables/useGame";
+
+// PWA
+const { needRefresh, updateServiceWorker } = useRegisterSW();
 
 // Stores
 const settingsStore = useSettingsStore();
@@ -329,7 +325,7 @@ header {
 }
 
 main {
-  margin: 10px 0px;
+  margin-top: 10px;
   display: flex;
   align-items: flex-start; /* Keep at top so it doesn't move */
   justify-content: center;
@@ -339,12 +335,14 @@ main {
 
 .game-status-area {
   flex-grow: 1;
-  height: 40px;
+  min-height: 80px; /* Reserve space for the toast */
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   width: 100%;
   padding: 0 10px;
+  position: relative; /* For child z-index */
 }
 
 .status-content {
@@ -359,6 +357,7 @@ main {
 
 .status-content h2 {
   margin: 0;
+  margin-top: 4px;
   font-size: 1.6rem;
   color: #538d4e;
   flex-shrink: 0;
@@ -369,19 +368,6 @@ main {
   font-size: 0.95rem;
   line-height: 1.4;
   max-width: 400px;
-}
-
-.message-content {
-  background: #ffffff;
-  color: #121213;
-  padding: 12px 24px;
-  border-radius: 8px;
-  font-weight: 800;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
-  animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
-  font-size: 0.9rem;
-  text-transform: uppercase;
-  letter-spacing: 0.05rem;
 }
 
 @keyframes shake {
@@ -522,7 +508,7 @@ main {
   border-radius: 8px;
   cursor: pointer;
   transition: all 0.2s;
-  margin: 4px 0 8px 0;
+  margin: 4px;
   flex-shrink: 0;
   width: 100%;
 }
@@ -594,90 +580,5 @@ footer.is-endgame {
   100% {
     transform: rotate(360deg);
   }
-}
-
-/* Achievement notification */
-.achievement-notification {
-  position: fixed;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
-  background: linear-gradient(135deg, #1e1e1f 0%, #2a2a2b 100%);
-  border: 2px solid #538d4e;
-  border-radius: 16px;
-  padding: 12px 20px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  box-shadow: 0 10px 40px rgba(83, 141, 78, 0.3);
-  z-index: 2000;
-}
-
-.achievement-notification .achievement-icon {
-  font-size: 2rem;
-}
-
-.achievement-notification .achievement-text {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.achievement-notification .achievement-label {
-  font-size: 0.75rem;
-  color: #538d4e;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-}
-
-.achievement-notification .achievement-name {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #ffffff;
-}
-
-.achievement-pop-enter-active {
-  animation: achievementIn 0.5s ease-out;
-}
-
-.achievement-pop-leave-active {
-  animation: achievementOut 0.3s ease-in;
-}
-
-@keyframes achievementIn {
-  0% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-20px) scale(0.8);
-  }
-  50% {
-    transform: translateX(-50%) translateY(5px) scale(1.05);
-  }
-  100% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
-  }
-}
-
-@keyframes achievementOut {
-  0% {
-    opacity: 1;
-    transform: translateX(-50%) translateY(0);
-  }
-  100% {
-    opacity: 0;
-    transform: translateX(-50%) translateY(-20px);
-  }
-}
-
-/* Transitions */
-.fade-enter-active,
-.fade-leave-active {
-  transition: opacity 0.3s ease;
-}
-
-.fade-enter-from,
-.fade-leave-to {
-  opacity: 0;
 }
 </style>

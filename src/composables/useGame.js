@@ -204,9 +204,9 @@ export function useGame() {
           message.value = "Not in word list";
           shakingRow.value = currentRow.value;
           setTimeout(() => {
-            if (message.value === "Not in word list") message.value = "";
+            message.value = "";
             shakingRow.value = -1;
-          }, 600);
+          }, 1500);
           return;
         }
         // Hard mode validation
