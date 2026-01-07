@@ -7,6 +7,10 @@
           reedle
         </h1>
         <div class="header-buttons">
+          <DailyGameIcon
+            :is-active="isDailyGame"
+            @click="handleDailyGameClick"
+          />
           <SettingsIcon @click="showSettingsModal = true" />
           <StatisticsIcon @click="showStatsModal = true" />
         </div>
@@ -24,12 +28,7 @@
               :color="getTileColor(rowIndex, colIndex)"
               :delay="getTileDelay(rowIndex, colIndex)"
               :count="getLetterCount(rowIndex, colIndex)"
-              :class="{
-                winner:
-                  gameState === 'won' &&
-                  rowIndex === currentRow - 1 &&
-                  showWinAnimation,
-              }"
+              :animate="shouldAnimateTile(rowIndex)"
             />
           </div>
         </template>
@@ -79,7 +78,9 @@
             </div>
           </div>
 
-          <button @click="resetGame" class="new-game-btn">New Game</button>
+          <button @click="handleNewGameClick" class="new-game-btn">
+            New Game
+          </button>
         </div>
       </div>
     </footer>
@@ -117,6 +118,7 @@ import SettingsModal from "./components/SettingsModal.vue";
 import StatsModal from "./components/StatsModal.vue";
 import SettingsIcon from "./components/SettingsIcon.vue";
 import StatisticsIcon from "./components/StatisticsIcon.vue";
+import DailyGameIcon from "./components/DailyGameIcon.vue";
 import { useSettingsStore } from "./stores/settingsStore";
 import { useGame } from "./composables/useGame";
 
@@ -129,7 +131,6 @@ const settingsStore = useSettingsStore();
 // Game composable
 const {
   isLoading,
-  guesses,
   currentRow,
   targetWord,
   targetMeanings,
@@ -140,6 +141,7 @@ const {
   keyStatuses,
   wordLength,
   gridStyle,
+  isDailyGame,
   fetchDictionary,
   resetGame,
   handleWordLengthChange,
@@ -147,6 +149,7 @@ const {
   getTileDelay,
   getTileColor,
   getLetterCount,
+  shouldAnimateTile,
   handleKeyClick,
   isLetterAbsent,
 } = useGame();
@@ -154,6 +157,21 @@ const {
 // Modal visibility
 const showSettingsModal = ref(false);
 const showStatsModal = ref(false);
+
+// Handle daily game button click
+function handleDailyGameClick() {
+  if (isDailyGame.value) {
+    // Already playing daily, start a random game instead
+    resetGame();
+  } else {
+    // Start the daily game
+    resetGame(true);
+  }
+}
+
+function handleNewGameClick() {
+  resetGame();
+}
 
 // Achievement notification
 const newAchievement = ref(null);
@@ -208,11 +226,9 @@ function handlePhysicalKeyDown(event) {
 }
 
 function handlePhysicalKeyUp(event) {
-  const activeButtons = document.getElementsByClassName("active");
-  if (activeButtons.length > 0) {
-    for (const button of activeButtons) {
-      button.classList.remove("active");
-    }
+  const activeButtons = document.querySelectorAll(".key.active");
+  for (const button of activeButtons) {
+    button.classList.remove("active");
   }
 }
 
@@ -310,6 +326,10 @@ header {
 
 .header-btn:active {
   transform: scale(0.95);
+}
+
+.header-btn:focus {
+  outline: none;
 }
 
 @media (max-width: 480px) {

@@ -1,16 +1,29 @@
 import { ref, computed } from "vue";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useStatsStore } from "../stores/statsStore";
+import { useDailyGameStore } from "../stores/dailyGameStore";
+
+// Seeded random number generator (mulberry32)
+function seededRandom(seed) {
+  return function () {
+    let t = (seed += 0x6d2b79f5);
+    t = Math.imul(t ^ (t >>> 15), t | 1);
+    t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
 
 export function useGame() {
   const settingsStore = useSettingsStore();
   const statsStore = useStatsStore();
+  const dailyGameStore = useDailyGameStore();
 
   // Word length from settings store
   const wordLength = computed(() => settingsStore.wordLength);
 
   // Game state
   const isLoading = ref(true);
+  const isDailyGame = ref(false);
   const dictionary = ref({});
   const allowedGuesses = ref({ 4: [], 5: [], 6: [] });
   const answerWords = ref({ 4: [], 5: [], 6: [] });
@@ -21,18 +34,37 @@ export function useGame() {
   const gameState = ref("playing"); // 'playing', 'won', 'lost'
   const message = ref("");
   const shakingRow = ref(-1);
-  const showWinAnimation = ref(false);
   const keyStatuses = ref({});
+  const justSubmittedRow = ref(-1);
 
   // Grid style computed
   const gridStyle = computed(() => ({
     "--cols": wordLength.value,
   }));
 
-  function getRandomWord(length) {
+  // Get a numeric seed from today's date (YYYYMMDD format)
+  function getTodaySeed() {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = today.getMonth() + 1;
+    const day = today.getDate();
+    return year * 10000 + month * 100 + day;
+  }
+
+  function getRandomWord(length, daily = false) {
     const words = answerWords.value[length];
     if (!words || words.length === 0) return null;
-    const selectedWord = words[Math.floor(Math.random() * words.length)];
+
+    let selectedWord;
+    if (daily) {
+      // Use seeded random for daily game
+      const seed = getTodaySeed() + length; // Add length to vary by word length
+      const rng = seededRandom(seed);
+      selectedWord = words[Math.floor(rng() * words.length)];
+    } else {
+      selectedWord = words[Math.floor(Math.random() * words.length)];
+    }
+
     const wordData = dictionary.value[selectedWord.toLowerCase()];
     return {
       word: selectedWord,
@@ -40,24 +72,64 @@ export function useGame() {
     };
   }
 
-  function resetGame() {
+  function resetGame(daily = false) {
+    isDailyGame.value = daily;
+    // If daily game, try to restore saved state
+    if (daily) {
+      const savedState = dailyGameStore.getGameState(wordLength.value);
+      if (savedState) {
+        justSubmittedRow.value = -1; // No row was just submitted on restore
+        message.value = "";
+        shakingRow.value = -1;
+        guesses.value = savedState.guesses;
+        currentRow.value = savedState.currentRow;
+        gameState.value = savedState.gameState;
+        targetWord.value = savedState.targetWord;
+        targetMeanings.value = savedState.targetMeanings;
+        keyStatuses.value = savedState.keyStatuses;
+        settingsStore.hardMode = savedState.hardMode;
+        if (import.meta.env.DEV) {
+          console.log(`[DEV] Restored Daily Game: ${targetWord.value}`);
+        }
+        return;
+      }
+    }
+    // Fresh game start
     guesses.value = ["", "", "", "", "", ""];
     currentRow.value = 0;
     gameState.value = "playing";
     message.value = "";
     shakingRow.value = -1;
-    showWinAnimation.value = false;
     keyStatuses.value = {};
-    const selected = getRandomWord(wordLength.value);
+    justSubmittedRow.value = -1;
+    const selected = getRandomWord(wordLength.value, daily);
     if (selected) {
       targetWord.value = selected.word;
       targetMeanings.value = selected.meanings;
-
+      if (daily) {
+        saveDailyGameState();
+      }
       // Debug info in dev mode
       if (import.meta.env.DEV) {
-        console.log(`[DEV] Target Word: ${targetWord.value}`);
+        console.log(
+          `[DEV] Target Word: ${targetWord.value}${daily ? " (Daily)" : ""}`
+        );
       }
     }
+  }
+
+  // Helper to save current daily game state
+  function saveDailyGameState() {
+    if (!isDailyGame.value) return;
+    dailyGameStore.saveGameState(wordLength.value, {
+      guesses: guesses.value,
+      currentRow: currentRow.value,
+      gameState: gameState.value,
+      targetWord: targetWord.value,
+      targetMeanings: targetMeanings.value,
+      keyStatuses: keyStatuses.value,
+      hardMode: settingsStore.hardMode,
+    });
   }
 
   async function fetchDictionary() {
@@ -99,7 +171,7 @@ export function useGame() {
 
   function handleWordLengthChange(len) {
     settingsStore.setWordLength(len);
-    resetGame();
+    resetGame(isDailyGame.value);
   }
 
   function updateKeyStatuses(guess) {
@@ -119,10 +191,7 @@ export function useGame() {
         }
       }
     });
-    // Update the keyboard all at once after the first tile begins to flip
-    setTimeout(() => {
-      keyStatuses.value = newStatuses;
-    }, 150);
+    keyStatuses.value = newStatuses;
   }
 
   function getLetter(rowIndex, colIndex) {
@@ -130,10 +199,14 @@ export function useGame() {
   }
 
   function getTileDelay(rowIndex, colIndex) {
-    if (rowIndex === currentRow.value - 1) {
+    if (rowIndex === justSubmittedRow.value) {
       return `${colIndex * 150}ms`;
     }
     return "0ms";
+  }
+
+  function shouldAnimateTile(rowIndex) {
+    return rowIndex === justSubmittedRow.value;
   }
 
   function getTileColor(rowIndex, colIndex) {
@@ -249,31 +322,28 @@ export function useGame() {
         }
         // Update keyboard statuses after flips
         updateKeyStatuses(guessUpper);
+        // Mark this row as just submitted for animation
+        justSubmittedRow.value = currentRow.value;
         // Evaluate guess
         if (guessUpper === targetWord.value) {
           const guessCount = currentRow.value + 1;
           currentRow.value++;
-          // Delay the win message and animation until flips are done
-          setTimeout(() => {
-            gameState.value = "won";
-            showWinAnimation.value = true;
-            // Record win and check achievements
-            const newAchievements = statsStore.recordWin(
-              guessCount,
-              wordLength.value,
-              {
-                hardMode: settingsStore.hardMode,
-                countMode: settingsStore.countMode,
-              }
-            );
-            if (newAchievements.length > 0 && onAchievements) {
-              onAchievements(newAchievements);
+          gameState.value = "won";
+          const newAchievements = statsStore.recordWin(
+            guessCount,
+            wordLength.value,
+            {
+              hardMode: settingsStore.hardMode,
+              countMode: settingsStore.countMode,
             }
-          }, wordLength.value * 150 + 400);
+          );
+          if (newAchievements.length > 0 && onAchievements) {
+            onAchievements(newAchievements);
+          }
         } else if (currentRow.value === 5) {
           currentRow.value++;
+          gameState.value = "lost";
           setTimeout(() => {
-            gameState.value = "lost";
             // Record loss and check achievements
             const newAchievements = statsStore.recordLoss();
             if (newAchievements.length > 0 && onAchievements) {
@@ -282,6 +352,9 @@ export function useGame() {
           }, wordLength.value * 150 + 400);
         } else {
           currentRow.value++;
+        }
+        if (isDailyGame.value) {
+          saveDailyGameState();
         }
         message.value = "";
       }
@@ -306,10 +379,10 @@ export function useGame() {
     gameState,
     message,
     shakingRow,
-    showWinAnimation,
     keyStatuses,
     wordLength,
     gridStyle,
+    isDailyGame,
 
     // Methods
     fetchDictionary,
@@ -319,6 +392,7 @@ export function useGame() {
     getTileDelay,
     getTileColor,
     getLetterCount,
+    shouldAnimateTile,
     handleKeyClick,
     isLetterAbsent,
   };

@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="['letter-tile', color, { 'has-letter': letter }]"
+    :class="['letter-tile', color, { 'has-letter': letter, animate: animate }]"
     :style="{ animationDelay: delay }"
   >
     {{ letter }}
@@ -25,6 +25,10 @@ defineProps({
   count: {
     type: Number,
     default: 0,
+  },
+  animate: {
+    type: Boolean,
+    default: true,
   },
 });
 </script>
@@ -52,22 +56,33 @@ defineProps({
   animation: pop 0.1s linear 1;
 }
 
-.correct {
+/* When not animating, show color immediately */
+.correct:not(.animate) {
   border: 0px solid #0000;
   background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
-  animation: flip 0.6s ease-in forwards;
 }
 
-.present {
+.present:not(.animate) {
   border: 0px solid #0000;
   background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
-  animation: flip 0.6s ease-in forwards;
 }
 
-.absent {
+.absent:not(.animate) {
   border: 0px solid #0000;
   background: linear-gradient(rgba(77, 77, 77, 1), rgba(38, 38, 38, 1));
-  animation: flip 0.6s ease-in forwards;
+}
+
+/* When animating, use flip animation which handles the color reveal */
+.correct.animate {
+  animation: flip-correct 0.6s ease-in forwards;
+}
+
+.present.animate {
+  animation: flip-present 0.6s ease-in forwards;
+}
+
+.absent.animate {
+  animation: flip-absent 0.6s ease-in forwards;
 }
 
 .idle {
@@ -87,48 +102,72 @@ defineProps({
   }
 }
 
-@keyframes flip {
+@keyframes flip-correct {
   0% {
     transform: rotateX(0);
-    background-color: transparent;
+    background: transparent;
     border-color: #3a3a3c;
   }
   45% {
     transform: rotateX(90deg);
-    background-color: transparent;
+    background: transparent;
     border-color: #3a3a3c;
   }
   55% {
     transform: rotateX(90deg);
+    background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
+    border-color: transparent;
   }
   100% {
     transform: rotateX(0);
+    background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
+    border-color: transparent;
   }
 }
 
-.winner {
-  animation: bounce 0.5s ease-in-out;
-}
-
-@keyframes bounce {
-  0%,
-  20% {
-    transform: translateY(0);
+@keyframes flip-present {
+  0% {
+    transform: rotateX(0);
+    background: transparent;
+    border-color: #3a3a3c;
   }
-  40% {
-    transform: translateY(-20px);
+  45% {
+    transform: rotateX(90deg);
+    background: transparent;
+    border-color: #3a3a3c;
   }
-  50% {
-    transform: translateY(5px);
-  }
-  60% {
-    transform: translateY(-10px);
-  }
-  80% {
-    transform: translateY(2px);
+  55% {
+    transform: rotateX(90deg);
+    background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
+    border-color: transparent;
   }
   100% {
-    transform: translateY(0);
+    transform: rotateX(0);
+    background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
+    border-color: transparent;
+  }
+}
+
+@keyframes flip-absent {
+  0% {
+    transform: rotateX(0);
+    background: transparent;
+    border-color: #3a3a3c;
+  }
+  45% {
+    transform: rotateX(90deg);
+    background: transparent;
+    border-color: #3a3a3c;
+  }
+  55% {
+    transform: rotateX(90deg);
+    background: linear-gradient(rgba(77, 77, 77, 1), rgba(38, 38, 38, 1));
+    border-color: transparent;
+  }
+  100% {
+    transform: rotateX(0);
+    background: linear-gradient(rgba(77, 77, 77, 1), rgba(38, 38, 38, 1));
+    border-color: transparent;
   }
 }
 
