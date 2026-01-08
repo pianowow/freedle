@@ -42,7 +42,7 @@
     </div>
 
     <footer :class="{ 'is-endgame': gameState !== 'playing' }">
-      <Keyboard
+      <VirtualKeyboard
         v-if="gameState === 'playing'"
         :key-statuses="keyStatuses"
         :hard-mode="settingsStore.hardMode"
@@ -110,7 +110,7 @@
 <script setup>
 import { ref, onMounted, onUnmounted } from "vue";
 import LetterTile from "./components/LetterTile.vue";
-import Keyboard from "./components/Keyboard.vue";
+import VirtualKeyboard from "./components/VirtualKeyboard.vue";
 import { useRegisterSW } from "virtual:pwa-register/vue";
 import AchievementToast from "./components/AchievementToast.vue";
 import ValidationToast from "./components/ValidationToast.vue";
@@ -225,7 +225,7 @@ function handlePhysicalKeyDown(event) {
   if (button) button.classList.add("active");
 }
 
-function handlePhysicalKeyUp(event) {
+function handlePhysicalKeyUp() {
   const activeButtons = document.querySelectorAll(".key.active");
   for (const button of activeButtons) {
     button.classList.remove("active");
