@@ -42,15 +42,6 @@ export function useGame() {
     "--cols": wordLength.value,
   }));
 
-  // Get a numeric seed from today's date (YYYYMMDD format)
-  function getTodaySeed() {
-    const today = new Date();
-    const year = today.getFullYear();
-    const month = today.getMonth() + 1;
-    const day = today.getDate();
-    return year * 10000 + month * 100 + day;
-  }
-
   function getRandomWord(length, daily = false) {
     const words = answerWords.value[length];
     if (!words || words.length === 0) return null;
@@ -58,7 +49,7 @@ export function useGame() {
     let selectedWord;
     if (daily) {
       // Use seeded random for daily game
-      const seed = getTodaySeed() + length; // Add length to vary by word length
+      const seed = dailyGameStore.dateKey + length; // Add length to vary by word length
       const rng = seededRandom(seed);
       selectedWord = words[Math.floor(rng() * words.length)];
     } else {
