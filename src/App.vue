@@ -28,7 +28,8 @@
               :color="getTileColor(rowIndex, colIndex)"
               :delay="getTileDelay(rowIndex, colIndex)"
               :count="getLetterCount(rowIndex, colIndex)"
-              :animate="shouldAnimateTile(rowIndex)"
+              :flip="shouldFlipTile(rowIndex)"
+              :is-current-row="rowIndex === currentRow"
             />
           </div>
         </template>
@@ -137,7 +138,6 @@ const {
   gameState,
   message,
   shakingRow,
-  showWinAnimation,
   keyStatuses,
   wordLength,
   gridStyle,
@@ -149,7 +149,7 @@ const {
   getTileDelay,
   getTileColor,
   getLetterCount,
-  shouldAnimateTile,
+  shouldFlipTile,
   handleKeyClick,
   isLetterAbsent,
 } = useGame();

@@ -205,7 +205,7 @@ export function useGame() {
     return "0ms";
   }
 
-  function shouldAnimateTile(rowIndex) {
+  function shouldFlipTile(rowIndex) {
     return rowIndex === justSubmittedRow.value;
   }
 
@@ -392,7 +392,7 @@ export function useGame() {
     getTileDelay,
     getTileColor,
     getLetterCount,
-    shouldAnimateTile,
+    shouldFlipTile,
     handleKeyClick,
     isLetterAbsent,
   };

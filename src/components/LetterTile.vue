@@ -1,6 +1,10 @@
 <template>
   <div
-    :class="['letter-tile', color, { 'has-letter': letter, animate: animate }]"
+    :class="[
+      'letter-tile',
+      color,
+      { 'has-letter': letter && isCurrentRow, flip: flip },
+    ]"
     :style="{ animationDelay: delay }"
   >
     {{ letter }}
@@ -26,9 +30,13 @@ defineProps({
     type: Number,
     default: 0,
   },
-  animate: {
+  flip: {
     type: Boolean,
     default: true,
+  },
+  isCurrentRow: {
+    type: Boolean,
+    default: false,
   },
 });
 </script>
@@ -57,31 +65,31 @@ defineProps({
 }
 
 /* When not animating, show color immediately */
-.correct:not(.animate) {
+.correct:not(.flip) {
   border: 0px solid #0000;
   background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
 }
 
-.present:not(.animate) {
+.present:not(.flip) {
   border: 0px solid #0000;
   background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
 }
 
-.absent:not(.animate) {
+.absent:not(.flip) {
   border: 0px solid #0000;
   background: linear-gradient(rgba(77, 77, 77, 1), rgba(38, 38, 38, 1));
 }
 
 /* When animating, use flip animation which handles the color reveal */
-.correct.animate {
+.correct.flip {
   animation: flip-correct 0.6s ease-in forwards;
 }
 
-.present.animate {
+.present.flip {
   animation: flip-present 0.6s ease-in forwards;
 }
 
-.absent.animate {
+.absent.flip {
   animation: flip-absent 0.6s ease-in forwards;
 }
 
@@ -116,12 +124,12 @@ defineProps({
   55% {
     transform: rotateX(90deg);
     background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
-    border-color: transparent;
+    border: 0px solid #0000;
   }
   100% {
     transform: rotateX(0);
     background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
-    border-color: transparent;
+    border: 0px solid #0000;
   }
 }
 
@@ -139,12 +147,12 @@ defineProps({
   55% {
     transform: rotateX(90deg);
     background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
-    border-color: transparent;
+    border: 0px solid #0000;
   }
   100% {
     transform: rotateX(0);
     background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
-    border-color: transparent;
+    border: 0px solid #0000;
   }
 }
 
@@ -162,12 +170,12 @@ defineProps({
   55% {
     transform: rotateX(90deg);
     background: linear-gradient(rgba(77, 77, 77, 1), rgba(38, 38, 38, 1));
-    border-color: transparent;
+    border: 0px solid #0000;
   }
   100% {
     transform: rotateX(0);
     background: linear-gradient(rgba(77, 77, 77, 1), rgba(38, 38, 38, 1));
-    border-color: transparent;
+    border: 0px solid #0000;
   }
 }
 
