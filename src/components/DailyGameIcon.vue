@@ -10,20 +10,18 @@
 </template>
 
 <script setup>
-import { computed } from "vue";
-
 defineProps({
   isActive: {
     type: Boolean,
     default: false,
   },
+  dayOfMonth: {
+    type: Number,
+    default: () => new Date().getDate(),
+  },
 });
 
 defineEmits(["click"]);
-
-const dayOfMonth = computed(() => {
-  return new Date().getDate();
-});
 </script>
 
 <style scoped>

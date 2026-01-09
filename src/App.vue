@@ -9,6 +9,7 @@
         <div class="header-buttons">
           <DailyGameIcon
             :is-active="isDailyGame"
+            :day-of-month="currentDayOfMonth"
             @click="handleDailyGameClick"
           />
           <SettingsIcon @click="showSettingsModal = true" />
@@ -154,6 +155,9 @@ const {
   isLetterAbsent,
 } = useGame();
 
+// Current day of month (updated when app becomes visible)
+const currentDayOfMonth = ref(new Date().getDate());
+
 // Modal visibility
 const showSettingsModal = ref(false);
 const showStatsModal = ref(false);
@@ -232,15 +236,24 @@ function handlePhysicalKeyUp() {
   }
 }
 
+function handleVisibilityChange() {
+  if (document.visibilityState === "visible") {
+    // Update the day of month when app becomes visible
+    currentDayOfMonth.value = new Date().getDate();
+  }
+}
+
 onMounted(() => {
   window.addEventListener("keydown", handlePhysicalKeyDown);
   window.addEventListener("keyup", handlePhysicalKeyUp);
+  document.addEventListener("visibilitychange", handleVisibilityChange);
   fetchDictionary();
 });
 
 onUnmounted(() => {
   window.removeEventListener("keydown", handlePhysicalKeyDown);
   window.removeEventListener("keyup", handlePhysicalKeyUp);
+  document.removeEventListener("visibilitychange", handleVisibilityChange);
 });
 </script>
 
