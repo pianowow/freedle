@@ -11,13 +11,13 @@ const enTxtFile = path.join(dataDir, "en.txt");
 const commonWordsFile = path.join(dataDir, "common-words.txt");
 
 const outDir = path.join(__dirname, "../public/data");
-const allowedWordsFile = path.join(outDir, "allowed-guesses.txt");
+const allowedGuessesFile = path.join(outDir, "allowed-guesses.txt");
 const dictionaryJsonFile = path.join(outDir, "target-dictionary.json");
 
 async function run() {
   try {
     // --- Task 1: allowed-words.txt ---
-    console.log("Generating allowed-words.txt...");
+    console.log("Generating allowed-guesses.txt...");
     if (!fs.existsSync(enTxtFile)) {
       console.error(`Error: ${enTxtFile} not found.`);
       process.exit(1);
@@ -25,7 +25,7 @@ async function run() {
 
     const enTxtContent = fs.readFileSync(enTxtFile, "utf8");
     const allWords = enTxtContent.split(/\r?\n/);
-    const allowedWords = [
+    const allowedGuesses = [
       ...new Set(
         allWords
           .map((w) => w.trim().toLowerCase())
@@ -36,13 +36,13 @@ async function run() {
       ),
     ].sort();
 
-    fs.writeFileSync(allowedWordsFile, allowedWords.join("\n"));
+    fs.writeFileSync(allowedGuessesFile, allowedGuesses.join("\n"));
     console.log(
-      `Successfully created ${allowedWordsFile} with ${allowedWords.length} words.`
+      `Successfully created ${allowedGuessesFile} with ${allowedGuesses.length} words.`
     );
 
     // --- Task 2: dictionary.json ---
-    console.log("Generating dictionary.json for common words...");
+    console.log("Generating target-dictionary.json for common words...");
     if (!fs.existsSync(commonWordsFile)) {
       console.error(`Error: ${commonWordsFile} not found.`);
       process.exit(1);
