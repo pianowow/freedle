@@ -315,35 +315,30 @@ export function useGame() {
         updateKeyStatuses(guessUpper);
         // Mark this row as just submitted for animation
         justSubmittedRow.value = currentRow.value;
+        currentRow.value++;
         // Evaluate guess
-        if (guessUpper === targetWord.value) {
-          const guessCount = currentRow.value + 1;
-          currentRow.value++;
-          gameState.value = "won";
-          const newAchievements = statsStore.recordWin(
-            guessCount,
-            wordLength.value,
-            {
-              hardMode: settingsStore.hardMode,
-              countMode: settingsStore.countMode,
+        setTimeout(() => {
+          if (guessUpper === targetWord.value) {
+            gameState.value = "won";
+            const newAchievements = statsStore.recordWin(
+              currentRow.value,
+              wordLength.value,
+              {
+                hardMode: settingsStore.hardMode,
+                countMode: settingsStore.countMode,
+              }
+            );
+            if (newAchievements.length > 0 && onAchievements) {
+              onAchievements(newAchievements);
             }
-          );
-          if (newAchievements.length > 0 && onAchievements) {
-            onAchievements(newAchievements);
-          }
-        } else if (currentRow.value === 5) {
-          currentRow.value++;
-          gameState.value = "lost";
-          setTimeout(() => {
-            // Record loss and check achievements
+          } else if (currentRow.value === 6) {
+            gameState.value = "lost";
             const newAchievements = statsStore.recordLoss();
             if (newAchievements.length > 0 && onAchievements) {
               onAchievements(newAchievements);
             }
-          }, wordLength.value * 150 + 400);
-        } else {
-          currentRow.value++;
-        }
+          }
+        }, wordLength.value * 150 + 400);
         if (isDailyGame.value) {
           saveDailyGameState();
         }
