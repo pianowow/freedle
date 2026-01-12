@@ -338,10 +338,10 @@ export function useGame() {
               onAchievements(newAchievements);
             }
           }
+          if (isDailyGame.value) {
+            saveDailyGameState();
+          }
         }, wordLength.value * 150 + 400);
-        if (isDailyGame.value) {
-          saveDailyGameState();
-        }
         message.value = "";
       }
     } else if (currentGuess.length < wordLength.value) {
