@@ -94,29 +94,47 @@ const handleKeyClick = (key) => {
   justify-content: center;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   user-select: none;
+  -webkit-tap-highlight-color: transparent;
 }
 
 .key:focus {
   outline: none;
 }
 
-.key:hover:not(.absent) {
-  background: linear-gradient(rgba(77, 77, 77, 0.8), rgba(38, 38, 38, 0.8));
+@media (hover: hover) {
+  .key:hover:not(.absent) {
+    background: linear-gradient(rgba(77, 77, 77, 0.8), rgba(38, 38, 38, 0.8));
+  }
+
+  .key.correct:hover {
+    background: linear-gradient(rgba(104, 161, 90, 0.8), rgba(83, 125, 78, 0.8));
+  }
+
+  .key.present:hover {
+    background: linear-gradient(rgba(217, 206, 85, 0.8), rgba(128, 124, 3, 0.8));
+  }
+
+  .key.backspace-key:hover {
+    background: linear-gradient(
+      rgba(156, 32, 32, 0.8),
+      rgba(105, 18, 18, 0.8)
+    );
+  }
+
+  .key.enter-key:hover {
+    background: linear-gradient(
+      rgba(110, 169, 94, 0.8),
+      rgba(83, 125, 78, 0.8)
+    );
+  }
 }
 
 .key.correct {
   background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
 }
 
-.key.correct:hover {
-  background: linear-gradient(rgba(104, 161, 90, 0.8), rgba(83, 125, 78, 0.8));
-}
-
 .key.present {
   background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
-}
-.key.present:hover {
-  background: linear-gradient(rgba(217, 206, 85, 0.8), rgba(128, 124, 3, 0.8));
 }
 
 .key.absent {
@@ -133,18 +151,10 @@ const handleKeyClick = (key) => {
   background: linear-gradient(rgba(156, 32, 32, 1), rgba(105, 18, 18, 1));
 }
 
-.key.backspace-key:hover {
-  background: linear-gradient(rgba(156, 32, 32, 0.8), rgba(105, 18, 18, 0.8));
-}
-
 .key.enter-key {
   min-width: 200px;
   max-width: 300px;
   background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
-}
-
-.key.enter-key:hover {
-  background: linear-gradient(rgba(110, 169, 94, 0.8), rgba(83, 125, 78, 0.8));
 }
 
 .key:active,
