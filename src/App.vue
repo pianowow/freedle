@@ -246,6 +246,7 @@ function handleVisibilityChange() {
 onMounted(() => {
   window.addEventListener("keydown", handlePhysicalKeyDown);
   window.addEventListener("keyup", handlePhysicalKeyUp);
+  window.addEventListener("touchend", handlePhysicalKeyUp);
   document.addEventListener("visibilitychange", handleVisibilityChange);
   fetchDictionary();
 });
@@ -253,6 +254,7 @@ onMounted(() => {
 onUnmounted(() => {
   window.removeEventListener("keydown", handlePhysicalKeyDown);
   window.removeEventListener("keyup", handlePhysicalKeyUp);
+  window.removeEventListener("touchend", handlePhysicalKeyUp);
   document.removeEventListener("visibilitychange", handleVisibilityChange);
 });
 </script>
