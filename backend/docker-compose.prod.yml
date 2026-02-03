@@ -1,5 +1,5 @@
 services:
-  api:
+  freedle-backend:
     container_name: freedle-backend
     build:
       context: .
@@ -9,11 +9,18 @@ services:
     expose:
       - "8000"
     restart: unless-stopped
+    networks:
+      - default
+      - proxy_default
 
   cloudflared:
     image: cloudflare/cloudflared:latest
     container_name: freedle-cloudflared
     command: tunnel --no-autoupdate run --token ${CLOUDFLARED_TOKEN}
     depends_on:
-      - api
+      - freedle-backend
     restart: unless-stopped
+
+networks:
+  proxy_default:
+    external: true
