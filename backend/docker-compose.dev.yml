@@ -1,0 +1,14 @@
+services:
+  freedle-backend:
+    container_name: freedle-backend
+    build:
+      context: .
+    env_file:
+      - .env
+    ports:
+      - "8000:8000"
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"

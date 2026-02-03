@@ -10,6 +10,9 @@ export default defineConfig([
     extends: ["js/recommended"],
     languageOptions: { globals: globals.browser },
   },
-  { files: ["scripts/**/*.js"], languageOptions: { globals: globals.node } },
+  {
+    files: ["scripts/**/*.js", "backend/**/*.js"],
+    languageOptions: { globals: globals.node },
+  },
   pluginVue.configs["flat/essential"],
 ]);

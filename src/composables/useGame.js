@@ -63,7 +63,17 @@ export function useGame() {
     };
   }
 
-  function resetGame(daily = false) {
+  async function logGameStart(data) {
+    const base = import.meta.env.VITE_API_BASE;
+    const res = await fetch(`${base}/events/game-start`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data || {}),
+    });
+    if (!res.ok) console.warn("Failed to log game start", res.status);
+  }
+
+  async function resetGame(daily = false) {
     isDailyGame.value = daily;
     // If daily game, try to restore saved state
     if (daily) {
@@ -103,10 +113,15 @@ export function useGame() {
       // Debug info in dev mode
       if (import.meta.env.DEV) {
         console.log(
-          `[DEV] Target Word: ${targetWord.value}${daily ? " (Daily)" : ""}`
+          `[DEV] Target Word: ${targetWord.value}${daily ? " (Daily)" : ""}`,
         );
       }
     }
+    await logGameStart({
+      daily: daily,
+      word: targetWord.value,
+      length: wordLength.value,
+    });
   }
 
   // Helper to save current daily game state
@@ -317,31 +332,34 @@ export function useGame() {
         justSubmittedRow.value = currentRow.value;
         currentRow.value++;
         // Evaluate guess
-        setTimeout(() => {
-          if (guessUpper === targetWord.value) {
-            gameState.value = "won";
-            const newAchievements = statsStore.recordWin(
-              currentRow.value,
-              wordLength.value,
-              {
-                hardMode: settingsStore.hardMode,
-                countMode: settingsStore.countMode,
+        setTimeout(
+          () => {
+            if (guessUpper === targetWord.value) {
+              gameState.value = "won";
+              const newAchievements = statsStore.recordWin(
+                currentRow.value,
+                wordLength.value,
+                {
+                  hardMode: settingsStore.hardMode,
+                  countMode: settingsStore.countMode,
+                },
+              );
+              if (newAchievements.length > 0 && onAchievements) {
+                onAchievements(newAchievements);
               }
-            );
-            if (newAchievements.length > 0 && onAchievements) {
-              onAchievements(newAchievements);
+            } else if (currentRow.value === 6) {
+              gameState.value = "lost";
+              const newAchievements = statsStore.recordLoss();
+              if (newAchievements.length > 0 && onAchievements) {
+                onAchievements(newAchievements);
+              }
             }
-          } else if (currentRow.value === 6) {
-            gameState.value = "lost";
-            const newAchievements = statsStore.recordLoss();
-            if (newAchievements.length > 0 && onAchievements) {
-              onAchievements(newAchievements);
+            if (isDailyGame.value) {
+              saveDailyGameState();
             }
-          }
-          if (isDailyGame.value) {
-            saveDailyGameState();
-          }
-        }, wordLength.value * 150 + 400);
+          },
+          wordLength.value * 150 + 400,
+        );
         message.value = "";
       }
     } else if (currentGuess.length < wordLength.value) {
