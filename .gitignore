@@ -1,6 +1,6 @@
 # env
 backend/.env
-backend/.cloudflared.env
+backend/.backend.env
 
 # Logs
 logs
