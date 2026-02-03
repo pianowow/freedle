@@ -8,7 +8,10 @@ const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || "http://localhost:5173")
 
 const LOG_LEVEL = process.env.LOG_LEVEL || "info";
 
-const app = fastify({ logger: { level: LOG_LEVEL } });
+const app = fastify({
+  logger: { level: LOG_LEVEL },
+  trustProxy: true,
+});
 
 await app.register(cors, {
   origin: (origin, cb) => {
