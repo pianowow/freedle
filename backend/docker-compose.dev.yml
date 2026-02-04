@@ -2,13 +2,35 @@ services:
   freedle-backend:
     container_name: freedle-backend
     build:
-      context: .
+      context: ..
+      dockerfile: backend/Dockerfile
     env_file:
       - .backend.env
     ports:
       - "8000:8000"
     volumes:
       - ./logs:/data
+      - ./src:/app/src
+    restart: unless-stopped
+    logging:
+      options:
+        max-size: "10m"
+        max-file: "3"
+
+  freedle-admin:
+    container_name: freedle-admin
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+    env_file:
+      - .backend.env
+    command: ["node", "--watch", "src/admin.js"]
+    ports:
+      - "8001:8001"
+    environment:
+      - ADMIN_PORT=8001
+    volumes:
+      - ./logs:/data:ro
       - ./src:/app/src
     restart: unless-stopped
     logging:

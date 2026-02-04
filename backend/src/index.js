@@ -129,61 +129,6 @@ async function readJsonlFile(filePath, remaining, out) {
   return added;
 }
 
-app.get("/events", async (req, reply) => {
-  const { start, max } = req.query || {};
-
-  const startDate = parseYyyyMmDd(start);
-  if (!startDate) {
-    return reply.code(400).send({
-      ok: false,
-      error: "Invalid 'start' query param. Expected YYYY-MM-DD.",
-    });
-  }
-
-  const maxEntriesRaw = max === undefined ? 1000 : Number(max);
-  const maxEntries = Number.isFinite(maxEntriesRaw)
-    ? Math.floor(maxEntriesRaw)
-    : NaN;
-  if (!Number.isFinite(maxEntries) || maxEntries <= 0) {
-    return reply.code(400).send({
-      ok: false,
-      error: "Invalid 'max' query param. Expected a positive number.",
-    });
-  }
-
-  const results = [];
-  let remaining = maxEntries;
-
-  // List available log files, then iterate in filename order.
-  // This avoids stopping early if a day's file is missing.
-  const startStr = yyyyMmDd(startDate);
-  const entries = await fs.promises.readdir(EVENTS_DIR).catch(() => []);
-  const files = entries
-    .filter((n) => n.startsWith("events-") && n.endsWith(".jsonl"))
-    .sort();
-
-  for (const name of files) {
-    if (remaining <= 0) break;
-
-    // Since format is events-YYYY-MM-DD.jsonl, string compare works chronologically.
-    const datePart = name.slice("events-".length, -".jsonl".length);
-    if (datePart.length !== 10) continue;
-    if (datePart < startStr) continue;
-
-    const filePath = path.join(EVENTS_DIR, name);
-    const added = await readJsonlFile(filePath, remaining, results);
-    remaining -= added;
-  }
-
-  return {
-    ok: true,
-    start: startStr,
-    max: maxEntries,
-    count: results.length,
-    events: results,
-  };
-});
-
 const port = Number(process.env.PORT || 8000);
 const host = process.env.HOST || "0.0.0.0";
 

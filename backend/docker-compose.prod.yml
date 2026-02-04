@@ -2,7 +2,9 @@ services:
   freedle-backend:
     container_name: freedle-backend
     build:
-      context: .
+      context: ..
+      dockerfile: backend/Dockerfile
+
     env_file:
       - .backend.env
     # No public port needed; cloudflared reaches this via Docker network
@@ -14,6 +16,27 @@ services:
     restart: unless-stopped
     networks:
       - default
+      - proxy_default
+
+  # Private admin service (do NOT connect to cloudflared).
+  freedle-admin:
+    container_name: freedle-admin
+    build:
+      context: ..
+      dockerfile: backend/Dockerfile
+
+    env_file:
+      - .backend.env
+    command: ["node", "--watch", "src/admin.js"]
+    expose:
+      - "8001"
+    environment:
+      - ADMIN_PORT=8001
+    volumes:
+      - ./logs:/data:ro
+      - ./src:/app/src
+    restart: unless-stopped
+    networks:
       - proxy_default
 
   cloudflared:
