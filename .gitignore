@@ -11,9 +11,13 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+.vite
 node_modules
 dist
 dist-ssr
+frontend/node_modules
+frontend/dist
+frontend/dist-ssr
 *.local
 
 # Editor directories and files
