@@ -31,7 +31,6 @@ function eventsPathForToday() {
 async function appendEvent(event) {
   const line = JSON.stringify(event) + "\n";
   const filePath = eventsPathForToday();
-  app.log.info({ filePath }, "Writing event to jsonl");
   writeChain = writeChain.then(() =>
     fs.promises.appendFile(filePath, line, "utf8"),
   );
@@ -92,6 +91,32 @@ app.post("/events/game-start", async (req) => {
   const payload = req.body || {};
   const event = {
     type: "game_start",
+    server_ts: new Date().toISOString(),
+    payload,
+    client: getClientInfo(req),
+  };
+  await appendEvent(event);
+  app.log.info(event); // JSON to stdout
+  return { ok: true };
+});
+
+app.post("/events/game-win", async (req) => {
+  const payload = req.body || {};
+  const event = {
+    type: "game_win",
+    server_ts: new Date().toISOString(),
+    payload,
+    client: getClientInfo(req),
+  };
+  await appendEvent(event);
+  app.log.info(event); // JSON to stdout
+  return { ok: true };
+});
+
+app.post("/events/game-loss", async (req) => {
+  const payload = req.body || {};
+  const event = {
+    type: "game_loss",
     server_ts: new Date().toISOString(),
     payload,
     client: getClientInfo(req),

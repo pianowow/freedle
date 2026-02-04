@@ -73,6 +73,28 @@ export function useGame() {
     if (!res.ok) console.warn("Failed to log game start", res.status);
   }
 
+  async function logGameWin(data) {
+    const base = import.meta.env.VITE_API_BASE;
+    const res = await fetch(`${base}/events/game-win`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data || {}),
+    });
+
+    if (!res.ok) console.warn("Failed to log game win", res.status);
+  }
+
+  async function logGameLoss(data) {
+    const base = import.meta.env.VITE_API_BASE;
+    const res = await fetch(`${base}/events/game-loss`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data || {}),
+    });
+
+    if (!res.ok) console.warn("Failed to log game loss", res.status);
+  }
+
   async function resetGame(daily = false) {
     isDailyGame.value = daily;
     // If daily game, try to restore saved state
@@ -336,6 +358,10 @@ export function useGame() {
           () => {
             if (guessUpper === targetWord.value) {
               gameState.value = "won";
+              logGameWin({
+                word: targetWord.value,
+                guessCount: currentRow.value,
+              });
               const newAchievements = statsStore.recordWin(
                 currentRow.value,
                 wordLength.value,
@@ -349,6 +375,10 @@ export function useGame() {
               }
             } else if (currentRow.value === 6) {
               gameState.value = "lost";
+              logGameLoss({
+                word: targetWord.value,
+                lastGuess: guessUpper,
+              });
               const newAchievements = statsStore.recordLoss();
               if (newAchievements.length > 0 && onAchievements) {
                 onAchievements(newAchievements);
