@@ -8,6 +8,9 @@ services:
     # No public port needed; cloudflared reaches this via Docker network
     expose:
       - "8000"
+    volumes:
+      - ./logs:/data
+      - ./src:/app/src
     restart: unless-stopped
     networks:
       - default

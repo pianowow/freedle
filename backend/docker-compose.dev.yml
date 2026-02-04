@@ -7,6 +7,9 @@ services:
       - .backend.env
     ports:
       - "8000:8000"
+    volumes:
+      - ./logs:/data
+      - ./src:/app/src
     restart: unless-stopped
     logging:
       options:
