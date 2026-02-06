@@ -143,6 +143,7 @@ export function useGame() {
       daily: daily,
       word: targetWord.value,
       length: wordLength.value,
+      viewport: window.innerWidth + "x" + window.innerHeight,
     });
   }
 
