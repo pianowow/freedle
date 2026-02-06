@@ -1,0 +1,19 @@
+:root {
+  color-scheme: dark;
+}
+
+html,
+body {
+  height: 100%;
+}
+
+body {
+  margin: 0;
+  background: #0b0f17;
+  color: #e8eefc;
+  font-family: system-ui, sans-serif;
+}
+
+#app {
+  min-height: 100%;
+}
