@@ -48,7 +48,7 @@ async function enforceRetention() {
         const full = path.join(EVENTS_DIR, name);
         const st = await fs.promises.stat(full).catch(() => null);
         if (st && st.mtimeMs < cutoff)
-          await fs.promises.unlink(full).catch(() => {});
+          await fs.promises.unlink(full).catch(() => { });
       }),
   );
 }
@@ -68,10 +68,10 @@ await app.register(cors, {
 
 function getClientInfo(req) {
   const h = req.headers;
-  const ip =
-    h["cf-connecting-ip"] ||
-    h["x-forwarded-for"]?.split(",")[0].trim() ||
-    req.ip;
+  // Cloudflare usually provides the real IP in 'cf-connecting-ip'
+  // If missing, we fall back to Fastify's req.ip (which respects trustProxy/X-Forwarded-For)
+  const ip = h["cf-connecting-ip"] || req.ip;
+
   return {
     ip,
     user_agent: h["user-agent"],
@@ -79,6 +79,10 @@ function getClientInfo(req) {
     country: h["cf-ipcountry"],
     accept_language: h["accept-language"],
     origin: h["origin"],
+    // Diagnostic headers to help identify proxy issues
+    proxy_chain: h["x-forwarded-for"],
+    real_ip: h["x-real-ip"],
+    cf_ray: h["cf-ray"],
   };
 }
 
