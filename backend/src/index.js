@@ -68,12 +68,14 @@ await app.register(cors, {
 
 function getClientInfo(req) {
   const h = req.headers;
+  const body = req.body || {};
   // Cloudflare usually provides the real IP in 'cf-connecting-ip'
   // If missing, we fall back to Fastify's req.ip (which respects trustProxy/X-Forwarded-For)
   const ip = h["cf-connecting-ip"] || req.ip;
 
   return {
     ip,
+    id: body.client_id, // Extract client-side UUID from body
     user_agent: h["user-agent"],
     referer: h["referer"],
     country: h["cf-ipcountry"],
@@ -92,41 +94,38 @@ app.get("/health", async () => ({
 }));
 
 app.post("/events/game-start", async (req) => {
-  const payload = req.body || {};
   const event = {
     type: "game_start",
     server_ts: new Date().toISOString(),
-    payload,
+    payload: req.body || {},
     client: getClientInfo(req),
   };
   await appendEvent(event);
-  app.log.info(event); // JSON to stdout
+  app.log.info(event);
   return { ok: true };
 });
 
 app.post("/events/game-win", async (req) => {
-  const payload = req.body || {};
   const event = {
     type: "game_win",
     server_ts: new Date().toISOString(),
-    payload,
+    payload: req.body || {},
     client: getClientInfo(req),
   };
   await appendEvent(event);
-  app.log.info(event); // JSON to stdout
+  app.log.info(event);
   return { ok: true };
 });
 
 app.post("/events/game-loss", async (req) => {
-  const payload = req.body || {};
   const event = {
     type: "game_loss",
     server_ts: new Date().toISOString(),
-    payload,
+    payload: req.body || {},
     client: getClientInfo(req),
   };
   await appendEvent(event);
-  app.log.info(event); // JSON to stdout
+  app.log.info(event);
   return { ok: true };
 });
 

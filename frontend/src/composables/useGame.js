@@ -63,12 +63,22 @@ export function useGame() {
     };
   }
 
+  // Persistent client-side ID
+  const clientId = (() => {
+    let id = localStorage.getItem("freedle_client_id");
+    if (!id) {
+      id = "c_" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
+      localStorage.setItem("freedle_client_id", id);
+    }
+    return id;
+  })();
+
   async function logGameStart(data) {
     const base = import.meta.env.VITE_API_BASE;
     const res = await fetch(`${base}/events/game-start`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data || {}),
+      body: JSON.stringify({ ...data, client_id: clientId }),
     });
     if (!res.ok) console.warn("Failed to log game start", res.status);
   }
@@ -78,7 +88,7 @@ export function useGame() {
     const res = await fetch(`${base}/events/game-win`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data || {}),
+      body: JSON.stringify({ ...data, client_id: clientId }),
     });
 
     if (!res.ok) console.warn("Failed to log game win", res.status);
@@ -89,7 +99,7 @@ export function useGame() {
     const res = await fetch(`${base}/events/game-loss`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(data || {}),
+      body: JSON.stringify({ ...data, client_id: clientId }),
     });
 
     if (!res.ok) console.warn("Failed to log game loss", res.status);
