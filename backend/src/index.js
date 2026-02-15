@@ -56,6 +56,15 @@ async function enforceRetention() {
 //every 6 hours
 setInterval(() => void enforceRetention(), 6 * 60 * 60 * 1000).unref();
 
+// Support for Private Network Access (PNA)
+// This MUST be registered before @fastify/cors to ensure it adds the header 
+// to preflight requests handled by the plugin.
+app.addHook("onRequest", async (request, reply) => {
+  if (request.headers["access-control-request-private-network"] === "true") {
+    reply.header("Access-Control-Allow-Private-Network", "true");
+  }
+});
+
 await app.register(cors, {
   origin: (origin, cb) => {
     // allow same-origin (no Origin header) and explicit matches
@@ -64,13 +73,6 @@ await app.register(cors, {
   },
   methods: ["POST", "GET", "OPTIONS"],
   allowedHeaders: ["*"],
-});
-
-// Support for Private Network Access (PNA)
-app.addHook("onRequest", async (request, reply) => {
-  if (request.headers["access-control-request-private-network"] === "true") {
-    reply.header("Access-Control-Allow-Private-Network", "true");
-  }
 });
 
 function getClientInfo(req) {
