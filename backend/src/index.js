@@ -66,6 +66,13 @@ await app.register(cors, {
   allowedHeaders: ["*"],
 });
 
+// Support for Private Network Access (PNA)
+app.addHook("onRequest", async (request, reply) => {
+  if (request.headers["access-control-request-private-network"] === "true") {
+    reply.header("Access-Control-Allow-Private-Network", "true");
+  }
+});
+
 function getClientInfo(req) {
   const h = req.headers;
   const body = req.body || {};
