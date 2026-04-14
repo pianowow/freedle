@@ -14,6 +14,7 @@ function seededRandom(seed) {
 }
 
 export function useGame() {
+  const DATA_CACHE_NAME = "freedle-static-data-v1";
   const settingsStore = useSettingsStore();
   const statsStore = useStatsStore();
   const dailyGameStore = useDailyGameStore();
@@ -75,34 +76,46 @@ export function useGame() {
 
   async function logGameStart(data) {
     const base = import.meta.env.VITE_API_BASE;
-    const res = await fetch(`${base}/events/game-start`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, client_id: clientId }),
-    });
-    if (!res.ok) console.warn("Failed to log game start", res.status);
+    try {
+      const res = await fetch(`${base}/events/game-start`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, client_id: clientId }),
+      });
+      if (!res.ok) console.warn("Failed to log game start", res.status);
+    } catch (error) {
+      console.warn("Failed to log game start", error);
+    }
   }
 
   async function logGameWin(data) {
     const base = import.meta.env.VITE_API_BASE;
-    const res = await fetch(`${base}/events/game-win`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, client_id: clientId }),
-    });
+    try {
+      const res = await fetch(`${base}/events/game-win`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, client_id: clientId }),
+      });
 
-    if (!res.ok) console.warn("Failed to log game win", res.status);
+      if (!res.ok) console.warn("Failed to log game win", res.status);
+    } catch (error) {
+      console.warn("Failed to log game win", error);
+    }
   }
 
   async function logGameLoss(data) {
     const base = import.meta.env.VITE_API_BASE;
-    const res = await fetch(`${base}/events/game-loss`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...data, client_id: clientId }),
-    });
+    try {
+      const res = await fetch(`${base}/events/game-loss`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ ...data, client_id: clientId }),
+      });
 
-    if (!res.ok) console.warn("Failed to log game loss", res.status);
+      if (!res.ok) console.warn("Failed to log game loss", res.status);
+    } catch (error) {
+      console.warn("Failed to log game loss", error);
+    }
   }
 
   async function resetGame(daily = false) {
@@ -172,12 +185,39 @@ export function useGame() {
   }
 
   async function fetchDictionary() {
+    const buildDataUrl = (fileName) => `${import.meta.env.BASE_URL}data/${fileName}`;
+    const fetchWithOfflineCache = async (fileName) => {
+      const url = buildDataUrl(fileName);
+      const cache = typeof window !== "undefined" && "caches" in window
+        ? await caches.open(DATA_CACHE_NAME)
+        : null;
+
+      try {
+        const response = await fetch(url);
+        if (!response.ok) {
+          throw new Error(`Failed to fetch ${fileName}: ${response.status}`);
+        }
+        if (cache) {
+          await cache.put(url, response.clone());
+        }
+        return response;
+      } catch (error) {
+        if (cache) {
+          const cachedResponse = await cache.match(url);
+          if (cachedResponse) {
+            return cachedResponse;
+          }
+        }
+        throw error;
+      }
+    };
+
     try {
       isLoading.value = true;
       // Fetch dictionary (common words with definitions) and allowed guesses
       const [dictRes, allowedRes] = await Promise.all([
-        fetch("data/target-dictionary.json"),
-        fetch("data/allowed-guesses.txt"),
+        fetchWithOfflineCache("target-dictionary.json"),
+        fetchWithOfflineCache("allowed-guesses.txt"),
       ]);
       const dictData = await dictRes.json();
       const allowedText = await allowedRes.text();
@@ -200,11 +240,12 @@ export function useGame() {
       dictionary.value = dictData;
       allowedGuesses.value = valid;
       answerWords.value = answers;
+      await resetGame();
     } catch (error) {
       console.error("Failed to load dictionary:", error);
+      message.value = "Dictionary unavailable offline. Open Freedle once online to cache game data.";
     } finally {
       isLoading.value = false;
-      resetGame();
     }
   }
 

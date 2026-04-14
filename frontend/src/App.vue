@@ -3,7 +3,7 @@
     <header>
       <div class="header-content">
         <h1>
-          <img src="/apple-touch-icon.png" alt="F" class="title-icon" />
+          <img :src="appIconUrl" alt="F" class="title-icon" />
           reedle
         </h1>
         <div class="header-buttons">
@@ -126,6 +126,7 @@ import { useGame } from "./composables/useGame";
 
 // PWA
 const { needRefresh, updateServiceWorker } = useRegisterSW();
+const appIconUrl = `${import.meta.env.BASE_URL}apple-touch-icon.png`;
 
 // Stores
 const settingsStore = useSettingsStore();
