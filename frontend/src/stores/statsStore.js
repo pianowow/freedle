@@ -81,6 +81,8 @@ export const useStatsStore = defineStore("stats", () => {
       winsBy4Letter,
       winsBy5Letter,
       winsBy6Letter,
+      winsByHardMode,
+      winsByCountMode,
       unlockedAchievements,
     ],
     saveToStorage,
