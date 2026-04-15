@@ -13,6 +13,87 @@ function seededRandom(seed) {
   };
 }
 
+export function evaluateTileColor(guess, target, colIndex) {
+  const normalizedGuess = guess.toUpperCase();
+  const normalizedTarget = target.toUpperCase();
+  const letter = normalizedGuess[colIndex];
+
+  if (!letter) return "idle";
+
+  // 1. Correct position
+  if (letter === normalizedTarget[colIndex]) {
+    return "correct";
+  }
+
+  // 2. Present/Absent logic with count handling
+  let targetCount = 0;
+  for (let i = 0; i < normalizedTarget.length; i++) {
+    if (normalizedTarget[i] === letter) targetCount++;
+  }
+
+  let correctCount = 0;
+  for (let i = 0; i < normalizedTarget.length; i++) {
+    if (
+      normalizedGuess[i] === letter &&
+      normalizedGuess[i] === normalizedTarget[i]
+    ) {
+      correctCount++;
+    }
+  }
+
+  let presentBeforeCount = 0;
+  for (let i = 0; i < colIndex; i++) {
+    if (
+      normalizedGuess[i] === letter &&
+      normalizedGuess[i] !== normalizedTarget[i]
+    ) {
+      presentBeforeCount++;
+    }
+  }
+
+  if (
+    normalizedTarget.includes(letter) &&
+    correctCount + presentBeforeCount < targetCount
+  ) {
+    return "present";
+  }
+
+  return "absent";
+}
+
+export function validateHardModeGuess(previousGuesses, guess, target) {
+  const normalizedGuess = guess.toUpperCase();
+  const normalizedTarget = target.toUpperCase();
+
+  for (const previousGuess of previousGuesses) {
+    const normalizedPreviousGuess = previousGuess.toUpperCase();
+
+    // Green letters must stay fixed in later guesses.
+    for (let i = 0; i < normalizedPreviousGuess.length; i++) {
+      if (
+        normalizedPreviousGuess[i] === normalizedTarget[i] &&
+        normalizedGuess[i] !== normalizedPreviousGuess[i]
+      ) {
+        return `Position ${i + 1} must be ${normalizedPreviousGuess[i]}`;
+      }
+    }
+
+    // Yellow letters must appear somewhere in the next guess.
+    for (let i = 0; i < normalizedPreviousGuess.length; i++) {
+      const letter = normalizedPreviousGuess[i];
+      if (
+        letter !== normalizedTarget[i] &&
+        normalizedTarget.includes(letter) &&
+        !normalizedGuess.includes(letter)
+      ) {
+        return `Guess must contain ${letter}`;
+      }
+    }
+  }
+
+  return "";
+}
+
 export function useGame() {
   const DATA_CACHE_NAME = "freedle-static-data-v1";
   const settingsStore = useSettingsStore();
@@ -291,40 +372,7 @@ export function useGame() {
 
   function getTileColor(rowIndex, colIndex) {
     if (rowIndex >= currentRow.value) return "idle";
-    const guess = guesses.value[rowIndex].toUpperCase();
-    const target = targetWord.value.toUpperCase();
-    const letter = guess[colIndex];
-    // 1. Correct position
-    if (letter === target[colIndex]) {
-      return "correct";
-    }
-    // 2. Present/Absent logic with count handling
-    // Count how many of this letter are in the target word
-    let targetCount = 0;
-    for (let i = 0; i < target.length; i++) {
-      if (target[i] === letter) targetCount++;
-    }
-    // Count how many 'correct' instances of this letter we have
-    let correctCount = 0;
-    for (let i = 0; i < target.length; i++) {
-      if (guess[i] === letter && guess[i] === target[i]) correctCount++;
-    }
-    // Count how many 'present' (yellow) instances of this letter BEFORE this index
-    let presentBeforeCount = 0;
-    for (let i = 0; i < colIndex; i++) {
-      // Only count as 'present' if it's not 'correct' at that position
-      if (guess[i] === letter && guess[i] !== target[i]) {
-        presentBeforeCount++;
-      }
-    }
-    // If (correctCount + presentBeforeCount) < targetCount, this one can be yellow
-    if (
-      target.includes(letter) &&
-      correctCount + presentBeforeCount < targetCount
-    ) {
-      return "present";
-    }
-    return "absent";
+    return evaluateTileColor(guesses.value[rowIndex], targetWord.value, colIndex);
   }
 
   // Get letter count for count mode (shows how many times a letter appears in target)
@@ -364,40 +412,20 @@ export function useGame() {
         }
         // Hard mode validation
         if (settingsStore.hardMode && currentRow.value > 0) {
-          const target = targetWord.value.toUpperCase();
-          // Check all previous guesses for revealed hints
-          for (let prevRow = 0; prevRow < currentRow.value; prevRow++) {
-            const prevGuess = guesses.value[prevRow].toUpperCase();
-            // Check green letters (must be in same position)
-            for (let i = 0; i < prevGuess.length; i++) {
-              if (
-                prevGuess[i] === target[i] &&
-                guessUpper[i] !== prevGuess[i]
-              ) {
-                message.value = `Position ${i + 1} must be ${prevGuess[i]}`;
-                shakingRow.value = currentRow.value;
-                setTimeout(() => {
-                  message.value = "";
-                  shakingRow.value = -1;
-                }, 1500);
-                return;
-              }
-            }
-            // Check yellow letters (must be present somewhere)
-            for (let i = 0; i < prevGuess.length; i++) {
-              const letter = prevGuess[i];
-              if (letter !== target[i] && target.includes(letter)) {
-                if (!guessUpper.includes(letter)) {
-                  message.value = `Guess must contain ${letter}`;
-                  shakingRow.value = currentRow.value;
-                  setTimeout(() => {
-                    message.value = "";
-                    shakingRow.value = -1;
-                  }, 1500);
-                  return;
-                }
-              }
-            }
+          const hardModeMessage = validateHardModeGuess(
+            guesses.value.slice(0, currentRow.value),
+            guessUpper,
+            targetWord.value,
+          );
+
+          if (hardModeMessage) {
+            message.value = hardModeMessage;
+            shakingRow.value = currentRow.value;
+            setTimeout(() => {
+              message.value = "";
+              shakingRow.value = -1;
+            }, 1500);
+            return;
           }
         }
         // Update keyboard statuses after flips
