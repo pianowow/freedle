@@ -1,5 +1,5 @@
-# .github/workflows/deploy.yml
-name: Deploy Vue 3 Vite App to GitHub Pages
+# .github/workflows/ci.yml
+name: Build, Test, and Sometimes Deploy
 
 on:
   push:
@@ -7,13 +7,13 @@ on:
       - main
     paths:
       - 'frontend/**'
-      - '.github/workflows/deploy.yml'
+      - '.github/workflows/ci.yml'
   pull_request:
     branches:
       - main
     paths:
       - 'frontend/**'
-      - '.github/workflows/deploy.yml'
+      - '.github/workflows/ci.yml'
 
 jobs:
   test-and-build:
