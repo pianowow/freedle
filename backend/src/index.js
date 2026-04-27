@@ -48,7 +48,7 @@ async function enforceRetention() {
         const full = path.join(EVENTS_DIR, name);
         const st = await fs.promises.stat(full).catch(() => null);
         if (st && st.mtimeMs < cutoff)
-          await fs.promises.unlink(full).catch(() => { });
+          await fs.promises.unlink(full).catch(() => {});
       }),
   );
 }
@@ -57,7 +57,7 @@ async function enforceRetention() {
 setInterval(() => void enforceRetention(), 6 * 60 * 60 * 1000).unref();
 
 // Support for Private Network Access (PNA)
-// We add the header to all responses if the origin is allowed, 
+// We add the header to all responses if the origin is allowed,
 // and ensure OPTIONS requests return 200 OK which some browsers prefer for PNA.
 app.addHook("onSend", async (request, reply, payload) => {
   const origin = request.headers["origin"];
@@ -148,34 +148,6 @@ app.post("/events/game-loss", async (req) => {
   app.log.info(event);
   return { ok: true };
 });
-
-function parseYyyyMmDd(s) {
-  if (typeof s !== "string") return null;
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(s)) return null;
-  const d = new Date(s + "T00:00:00.000Z");
-  if (Number.isNaN(d.getTime())) return null;
-  // ensure we didn't overflow into another date (e.g. 2024-02-31)
-  if (d.toISOString().slice(0, 10) !== s) return null;
-  return d;
-}
-
-async function readJsonlFile(filePath, remaining, out) {
-  if (remaining <= 0) return 0;
-  const content = await fs.promises.readFile(filePath, "utf8");
-  const lines = content.split("\n");
-  let added = 0;
-  for (const line of lines) {
-    if (!line) continue;
-    try {
-      out.push(JSON.parse(line));
-      added++;
-      if (added >= remaining) break;
-    } catch {
-      // skip malformed lines
-    }
-  }
-  return added;
-}
 
 const port = Number(process.env.PORT || 8000);
 const host = process.env.HOST || "0.0.0.0";
