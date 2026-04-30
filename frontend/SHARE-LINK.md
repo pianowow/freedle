@@ -153,7 +153,7 @@ Tests:
 
 ### Phase 2 — Share-link codec
 
-New file: `frontend/src/composables/useShareLink.js` (or `frontend/src/utils/shareLink.js` if a composable shape isn't needed).
+New file: `frontend/src/utils/shareLink.js`
 
 API:
 
@@ -180,7 +180,7 @@ Tests in `frontend/src/utils/shareLink.test.js`:
 
 ### Phase 3 — Emoji result grid
 
-Add a util (e.g., `frontend/src/utils/resultGrid.js`):
+Add a util `frontend/src/utils/resultGrid.js`:
 
 ```js
 function buildResultGrid({ guesses, target, mode, wordLength, guessCount, won }) // → multi-line string
@@ -189,21 +189,21 @@ function buildResultGrid({ guesses, target, mode, wordLength, guessCount, won })
 Format (subject to refinement):
 
 ```
-Freedle 5 — 3/6 ⭐
+Freedle 5 — 3 Guesses! ⭐
 🟩⬛🟨⬛⬛
 🟩🟩🟨⬛⬛
 🟩🟩🟩🟩🟩
-
+Can you beat my score?! 
 <share URL>
 ```
 
-- Header line varies by mode: `Daily YYYY-MM-DD`, `Random`, `Daily (Hard)`, etc.
-- Loss case shows `X/6` instead of `n/6`.
+- Loss case shows `Loss! 😖` instead of `N Guesses! ⭐`.
 - Uses `evaluateTileColor` from `useGame.js` so the grid matches what was on-screen.
 
 Tests:
 
-- Win, loss, hard mode, count mode all produce expected strings.
+- Win and loss both produce expected strings.
+- Hard and Count settings toggles do not change the share text.
 - Idle/empty rows are not rendered.
 
 ### Phase 4 — Share button on endgame screen
@@ -215,7 +215,6 @@ Tests:
   2. Build the emoji result grid (Phase 3) and concatenate with the URL.
   3. If `navigator.share` is available, call it with `{ text }`. Otherwise, copy `text` to the clipboard via `navigator.clipboard.writeText` and show a brief "Copied!" toast (reuse `BaseToast.vue`).
 - For shared (incoming-challenge) games, the button **re-shares the same challenge link** but with the current player's emoji grid.
-- Visually disabled (or hidden) until dictionary version metadata is available — should always be available by endgame.
 
 ### Phase 5 — Receive shared link
 
@@ -233,8 +232,7 @@ Wired into `App.vue` `onMounted` (after `fetchDictionary` completes, or coordina
 | --------------------------------- | ---------------------------------------------------------------------------------------------- |
 | No active game (fresh load)       | Load the challenge directly.                                                                   |
 | Random game in progress           | Show abandon-confirmation modal. Yes → load challenge. No → clear URL, do nothing.             |
-| Daily game in progress (today)    | Resume the daily; ignore the link. (Stretch: subtle "challenge waiting" indicator — deferred.) |
-| Already-completed daily for today | Treat as "no active game" — load the challenge.                                                |
+| Daily game in progress            | Treat as "no active game" - load the challenge.                                                |
 
 8. When loading the challenge:
    - Set `isSharedGame = true` on `useGame`.
@@ -302,6 +300,7 @@ Manual test matrix:
 - **Auto-suggest sharing** on memorable games (1-guess wins, last-row saves, etc.).
 - **Recent challenges list** in localStorage for easy re-access.
 - **Server-side analytics** on share usage (counts, conversion to plays, etc.) using the existing JSONL event pipeline.
+- backend endpoints for share creation, share accepting, frontend calls to that as appropriate.  want to log errors on share links not working distinctly.  Surface errors in their own table in admin. 
 
 ---
 
