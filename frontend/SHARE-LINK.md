@@ -241,7 +241,8 @@ Wired into `App.vue` `onMounted` (after `fetchDictionary` completes, or coordina
    - Reset guesses, currentRow, keyStatuses, etc., as in a normal `resetGame`.
    - Show a 3–4 second toast: **"You've been challenged! Social mode — achievements disabled this game"**.
    - **Skip** all stats/achievement recording in `handleKeyClick` when `isSharedGame === true`. This means **no `recordWin`, no `recordLoss`, no `gamesPlayed` increment.**
-   - **Skip** event logging? **Decision: still log `game-start`/`game-win`/`game-loss` to the backend with a `shared: true` flag for analytics.** (The backend log is server-side telemetry, not user-facing stats.)
+   - Event logging: still log `game-start`/`game-win`/`game-loss` to the backend with a `shared: true` flag for analytics. (The backend log is server-side telemetry, not stats)
+
 9. Always call `history.replaceState(null, '', window.location.pathname)` to clear the share params from the address bar after step 6 or 7, regardless of branch chosen.
 
 After a shared game ends:
@@ -271,20 +272,16 @@ After a shared game ends:
 Unit tests:
 
 - Share codec: build/parse/verify round-trips, malformed inputs, dict version mismatch, date format edge cases (leading zeros, etc.).
-- Emoji grid builder: win, loss, hard mode, count mode, all word lengths.
+- Emoji grid builder: win, loss, all word lengths.
 - `useGame` decoupling: `activeWordLength` and `settings.wordLength` can diverge; stats key off the active length; settings remain unchanged after a shared game.
 - `useGame` shared-game branches: stats/achievements not recorded when `isSharedGame === true`.
 
 Manual test matrix:
 
 - Random share: same dict version → works.
-- Random share: older dict version (recipient on newer) → loads from old dictionary, works.
-- Random share: newer dict version (recipient on older) → graceful "update Freedle" error.
 - Daily share: today → works.
-- Daily share: past date → works.
-- Daily share: future date → works (target word seeds from the future date).
 - Receive link with random game in progress → abandon prompt: Yes loads challenge, No clears URL and resumes random.
-- Receive link with daily game in progress for today → daily resumes, link ignored.
+- Receive link with daily game in progress for today → loads challenge directly since daily game can be resumed.
 - Receive link with no game in progress → loads challenge directly.
 - Cross-length share: 5-letter shared with recipient on 6-letter setting → challenge plays at 5; settings remain 6 after challenge ends.
 - Web Share API path (mobile) and clipboard path (desktop) both produce correct text + URL.
