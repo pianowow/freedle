@@ -183,13 +183,13 @@ Tests in `frontend/src/utils/shareLink.test.js`:
 Add a util `frontend/src/utils/resultGrid.js`:
 
 ```js
-function buildResultGrid({ guesses, target, mode, wordLength, guessCount, won }) // → multi-line string
+function buildResultGrid({ guesses, target, wordLength }) // → multi-line string
 ```
 
 Format (subject to refinement):
 
 ```
-Freedle 5 — 3 Guesses! ⭐
+Freedle — 3 Guesses! ⭐
 🟩⬛🟨⬛⬛
 🟩🟩🟨⬛⬛
 🟩🟩🟩🟩🟩
