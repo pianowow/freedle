@@ -100,8 +100,9 @@ export function useGame() {
   const statsStore = useStatsStore();
   const dailyGameStore = useDailyGameStore();
 
-  // Word length from settings store
-  const wordLength = computed(() => settingsStore.wordLength);
+  // Active word length can temporarily diverge from persisted settings.
+  const activeWordLength = ref(settingsStore.wordLength);
+  const wordLength = computed(() => activeWordLength.value);
 
   // Game state
   const isLoading = ref(true);
@@ -201,6 +202,7 @@ export function useGame() {
 
   async function resetGame(daily = false) {
     isDailyGame.value = daily;
+    activeWordLength.value = settingsStore.wordLength;
     // If daily game, try to restore saved state
     if (daily) {
       const savedState = dailyGameStore.getGameState(wordLength.value);
@@ -332,6 +334,7 @@ export function useGame() {
 
   function handleWordLengthChange(len) {
     settingsStore.setWordLength(len);
+    activeWordLength.value = settingsStore.wordLength;
     resetGame(isDailyGame.value);
   }
 
@@ -494,6 +497,7 @@ export function useGame() {
     message,
     shakingRow,
     keyStatuses,
+    activeWordLength,
     wordLength,
     gridStyle,
     isDailyGame,
