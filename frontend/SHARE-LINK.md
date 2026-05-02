@@ -186,7 +186,9 @@ Add a util `frontend/src/utils/resultGrid.js`:
 function buildResultGrid({ guesses, target, wordLength }) // → multi-line string
 ```
 
-Format (subject to refinement):
+The utility returns the share-text body only. The URL is appended by the Phase 4 share-button flow, not by `buildResultGrid()`.
+
+Format:
 
 ```
 Freedle — 3 Guesses! ⭐
@@ -194,10 +196,9 @@ Freedle — 3 Guesses! ⭐
 🟩🟩🟨⬛⬛
 🟩🟩🟩🟩🟩
 Can you beat my score?! 
-<share URL>
 ```
 
-- Loss case shows `Loss! 😖` instead of `N Guesses! ⭐`.
+- Loss case shows `Loss! 😖` instead of `N Guesses! ⭐` and `Can you solve it?!` instead of `Can you beat my score?!`.
 - Uses `evaluateTileColor` from `useGame.js` so the grid matches what was on-screen.
 
 Tests:
