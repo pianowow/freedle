@@ -161,7 +161,7 @@ API:
 // All async because hashing uses SubtleCrypto
 async function buildDailyShareUrl({ version, date, word }) // → absolute URL string
 async function buildRandomShareUrl({ version, seed, word }) // → absolute URL string
-function parseShareParams(searchParams) // → { type: 'daily'|'random', version, dateOrSeed, hash } | null
+function parseShareParams(searchParams) // → { type: 'daily', version, date, length, hash } | { type: 'random', version, seed, length, hash } | null
 async function hashWord(word) // → 16-char lowercase hex string
 async function verifyShare(decoded, candidateWord) // → boolean
 ```
