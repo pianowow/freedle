@@ -17,7 +17,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,txt,webmanifest}'],
         additionalManifestEntries: [
           { url: 'manifest.json', revision: null },
-          { url: 'data/target-dictionary.json', revision: null },
+          { url: 'data/target-dictionary-v1.json', revision: null },
         ],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },

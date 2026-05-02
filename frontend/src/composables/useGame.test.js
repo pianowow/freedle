@@ -3,6 +3,7 @@ import { nextTick } from "vue";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useStatsStore } from "../stores/statsStore";
 import { useGame, evaluateTileColor, validateHardModeGuess } from "./useGame";
+import { LATEST_DICT_VERSION } from "../constants/dictionary";
 
 const mockDictionary = {
   lion: { meanings: [] },
@@ -55,17 +56,27 @@ describe("useGame word length handling", () => {
     vi.stubGlobal(
       "fetch",
       vi.fn(async (url) => {
-        if (url.includes("target-dictionary.json")) {
+        if (url.includes(`target-dictionary-v${LATEST_DICT_VERSION}.json`)) {
           return {
             ok: true,
             json: async () => mockDictionary,
           };
         }
 
-        if (url.includes("allowed-guesses.txt")) {
+        if (url.includes(`allowed-guesses-v${LATEST_DICT_VERSION}.txt`)) {
           return {
             ok: true,
             text: async () => mockAllowedGuesses,
+          };
+        }
+
+        if (
+          url.includes("target-dictionary-v2.json") ||
+          url.includes("allowed-guesses-v2.txt")
+        ) {
+          return {
+            ok: false,
+            status: 404,
           };
         }
 
@@ -128,5 +139,31 @@ describe("useGame word length handling", () => {
     expect(settingsStore.wordLength).toBe(6);
     expect(game.wordLength.value).toBe(6);
     expect(game.gridStyle.value["--cols"]).toBe(6);
+  });
+
+  it("loads the latest dictionary version into the same word buckets as before", async () => {
+    const game = useGame();
+
+    const data = await game.loadDictionaryVersion(LATEST_DICT_VERSION);
+
+    expect(data.dictionary).toEqual(mockDictionary);
+    expect(data.allowedGuesses).toEqual({
+      4: ["LION"],
+      5: ["CRANE"],
+      6: ["PLANET"],
+    });
+    expect(data.answerWords).toEqual({
+      4: ["LION"],
+      5: ["CRANE"],
+      6: ["PLANET"],
+    });
+  });
+
+  it("surfaces a clear error when a dictionary version is missing", async () => {
+    const game = useGame();
+
+    await expect(game.loadDictionaryVersion(2)).rejects.toThrow(
+      "Dictionary version 2 is unavailable.",
+    );
   });
 });

@@ -2,6 +2,10 @@ import { ref, computed } from "vue";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useStatsStore } from "../stores/statsStore";
 import { useDailyGameStore } from "../stores/dailyGameStore";
+import {
+  DATA_CACHE_NAME,
+  LATEST_DICT_VERSION,
+} from "../constants/dictionary";
 
 // Seeded random number generator (mulberry32)
 function seededRandom(seed) {
@@ -95,10 +99,10 @@ export function validateHardModeGuess(previousGuesses, guess, target) {
 }
 
 export function useGame() {
-  const DATA_CACHE_NAME = "freedle-static-data-v1";
   const settingsStore = useSettingsStore();
   const statsStore = useStatsStore();
   const dailyGameStore = useDailyGameStore();
+  const dictionaryVersionCache = new Map();
 
   // Active word length can temporarily diverge from persisted settings.
   const activeWordLength = ref(settingsStore.wordLength);
@@ -124,6 +128,17 @@ export function useGame() {
   const gridStyle = computed(() => ({
     "--cols": wordLength.value,
   }));
+
+  function createWordBuckets() {
+    return { 4: [], 5: [], 6: [] };
+  }
+
+  function getVersionedDataFiles(version) {
+    return {
+      dictionaryFile: `target-dictionary-v${version}.json`,
+      allowedGuessesFile: `allowed-guesses-v${version}.txt`,
+    };
+  }
 
   function getRandomWord(length, daily = false) {
     const words = answerWords.value[length];
@@ -267,66 +282,116 @@ export function useGame() {
     });
   }
 
-  async function fetchDictionary() {
-    const buildDataUrl = (fileName) => `${import.meta.env.BASE_URL}data/${fileName}`;
-    const fetchWithOfflineCache = async (fileName) => {
-      const url = buildDataUrl(fileName);
-      const cache = typeof window !== "undefined" && "caches" in window
-        ? await caches.open(DATA_CACHE_NAME)
-        : null;
+  const buildDataUrl = (fileName) => `${import.meta.env.BASE_URL}data/${fileName}`;
+
+  const fetchWithOfflineCache = async (fileName) => {
+    const url = buildDataUrl(fileName);
+    const cache = typeof window !== "undefined" && "caches" in window
+      ? await caches.open(DATA_CACHE_NAME)
+      : null;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        const fetchError = new Error(`Failed to fetch ${fileName}: ${response.status}`);
+        fetchError.status = response.status;
+        fetchError.fileName = fileName;
+        throw fetchError;
+      }
+      if (cache) {
+        await cache.put(url, response.clone());
+      }
+      return response;
+    } catch (error) {
+      if (cache) {
+        const cachedResponse = await cache.match(url);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+      }
+      throw error;
+    }
+  };
+
+  async function loadDictionaryVersion(version) {
+    if (!Number.isInteger(version) || version < 1) {
+      throw new Error(`Invalid dictionary version: ${version}`);
+    }
+
+    if (dictionaryVersionCache.has(version)) {
+      return dictionaryVersionCache.get(version);
+    }
+
+    const loadPromise = (async () => {
+      const { dictionaryFile, allowedGuessesFile } = getVersionedDataFiles(version);
 
       try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ${fileName}: ${response.status}`);
-        }
-        if (cache) {
-          await cache.put(url, response.clone());
-        }
-        return response;
-      } catch (error) {
-        if (cache) {
-          const cachedResponse = await cache.match(url);
-          if (cachedResponse) {
-            return cachedResponse;
+        const [dictRes, allowedRes] = await Promise.all([
+          fetchWithOfflineCache(dictionaryFile),
+          fetchWithOfflineCache(allowedGuessesFile),
+        ]);
+
+        const dictData = await dictRes.json();
+        const allowedText = await allowedRes.text();
+        const valid = createWordBuckets();
+        const answers = createWordBuckets();
+
+        allowedText.split("\n").forEach((line) => {
+          const word = line.trim().toUpperCase();
+          if (word && word.length >= 4 && word.length <= 6) {
+            valid[word.length].push(word);
           }
+        });
+
+        Object.keys(dictData).forEach((word) => {
+          const len = word.length;
+          if (answers[len]) {
+            answers[len].push(word.toUpperCase());
+          }
+        });
+
+        return {
+          dictionary: dictData,
+          allowedGuesses: valid,
+          answerWords: answers,
+        };
+      } catch (error) {
+        if (error?.status === 404) {
+          throw new Error(`Dictionary version ${version} is unavailable.`);
         }
         throw error;
       }
-    };
+    })();
+
+    dictionaryVersionCache.set(version, loadPromise);
 
     try {
+      return await loadPromise;
+    } catch (error) {
+      dictionaryVersionCache.delete(version);
+      throw error;
+    }
+  }
+
+  async function fetchDictionary() {
+    try {
       isLoading.value = true;
-      // Fetch dictionary (common words with definitions) and allowed guesses
-      const [dictRes, allowedRes] = await Promise.all([
-        fetchWithOfflineCache("target-dictionary.json"),
-        fetchWithOfflineCache("allowed-guesses.txt"),
-      ]);
-      const dictData = await dictRes.json();
-      const allowedText = await allowedRes.text();
-      const valid = { 4: [], 5: [], 6: [] };
-      const answers = { 4: [], 5: [], 6: [] };
-      // Populate valid guesses from allowed-guesses.txt
-      allowedText.split("\n").forEach((line) => {
-        const word = line.trim().toUpperCase();
-        if (word && word.length >= 4 && word.length <= 6) {
-          valid[word.length].push(word);
-        }
-      });
-      // Populate target answers from target-dictionary.json
-      Object.keys(dictData).forEach((word) => {
-        const len = word.length;
-        if (answers[len]) {
-          answers[len].push(word.toUpperCase());
-        }
-      });
+      const latestDictionary = await loadDictionaryVersion(LATEST_DICT_VERSION);
+      const { dictionary: dictData, allowedGuesses: valid, answerWords: answers } =
+        latestDictionary;
+
       dictionary.value = dictData;
       allowedGuesses.value = valid;
       answerWords.value = answers;
+      message.value = "";
       await resetGame();
     } catch (error) {
       console.error("Failed to load dictionary:", error);
-      message.value = "Dictionary unavailable offline. Open Freedle once online to cache game data.";
+      if (error.message.startsWith("Dictionary version ")) {
+        message.value = error.message;
+      } else {
+        message.value = "Dictionary unavailable offline. Open Freedle once online to cache game data.";
+      }
     } finally {
       isLoading.value = false;
     }
@@ -501,6 +566,7 @@ export function useGame() {
     wordLength,
     gridStyle,
     isDailyGame,
+    loadDictionaryVersion,
 
     // Methods
     fetchDictionary,
