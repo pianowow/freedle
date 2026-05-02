@@ -17,6 +17,16 @@ function seededRandom(seed) {
   };
 }
 
+function formatDateKey(dateKey) {
+  const normalized = String(dateKey ?? "");
+  if (!/^\d{8}$/.test(normalized)) return "";
+
+  const year = normalized.slice(0, 4);
+  const month = normalized.slice(4, 6);
+  const day = normalized.slice(6, 8);
+  return `${year}-${month}-${day}`;
+}
+
 export function evaluateTileColor(guess, target, colIndex) {
   const normalizedGuess = guess.toUpperCase();
   const normalizedTarget = target.toUpperCase();
@@ -114,6 +124,9 @@ export function useGame() {
   const dictionary = ref({});
   const allowedGuesses = ref({ 4: [], 5: [], 6: [] });
   const answerWords = ref({ 4: [], 5: [], 6: [] });
+  const currentDictionaryVersion = ref(LATEST_DICT_VERSION);
+  const currentRandomSeed = ref(null);
+  const currentDailyDate = computed(() => formatDateKey(dailyGameStore.dateKey));
   const guesses = ref(["", "", "", "", "", ""]);
   const currentRow = ref(0);
   const targetWord = ref("");
@@ -140,7 +153,7 @@ export function useGame() {
     };
   }
 
-  function getRandomWord(length, daily = false) {
+  function getRandomWord(length, daily = false, randomSeed = null) {
     const words = answerWords.value[length];
     if (!words || words.length === 0) return null;
 
@@ -151,7 +164,11 @@ export function useGame() {
       const rng = seededRandom(seed);
       selectedWord = words[Math.floor(rng() * words.length)];
     } else {
-      selectedWord = words[Math.floor(Math.random() * words.length)];
+      const seed = Number.isInteger(randomSeed)
+        ? randomSeed
+        : Math.floor(Math.random() * 2 ** 32);
+      const rng = seededRandom(seed);
+      selectedWord = words[Math.floor(rng() * words.length)];
     }
 
     const wordData = dictionary.value[selectedWord.toLowerCase()];
@@ -218,6 +235,7 @@ export function useGame() {
   async function resetGame(daily = false) {
     isDailyGame.value = daily;
     activeWordLength.value = settingsStore.wordLength;
+    currentRandomSeed.value = daily ? null : Math.floor(Math.random() * 2 ** 32);
     // If daily game, try to restore saved state
     if (daily) {
       const savedState = dailyGameStore.getGameState(wordLength.value);
@@ -246,7 +264,11 @@ export function useGame() {
     shakingRow.value = -1;
     keyStatuses.value = {};
     justSubmittedRow.value = -1;
-    const selected = getRandomWord(wordLength.value, daily);
+    const selected = getRandomWord(
+      wordLength.value,
+      daily,
+      currentRandomSeed.value,
+    );
     if (selected) {
       targetWord.value = selected.word;
       targetMeanings.value = selected.meanings;
@@ -383,6 +405,7 @@ export function useGame() {
       dictionary.value = dictData;
       allowedGuesses.value = valid;
       answerWords.value = answers;
+      currentDictionaryVersion.value = LATEST_DICT_VERSION;
       message.value = "";
       await resetGame();
     } catch (error) {
@@ -566,6 +589,9 @@ export function useGame() {
     wordLength,
     gridStyle,
     isDailyGame,
+    currentDictionaryVersion,
+    currentRandomSeed,
+    currentDailyDate,
     loadDictionaryVersion,
 
     // Methods

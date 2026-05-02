@@ -166,4 +166,26 @@ describe("useGame word length handling", () => {
       "Dictionary version 2 is unavailable.",
     );
   });
+
+  it("tracks the deterministic seed used for the active random game", async () => {
+    localStorage.setItem("freedle_client_id", "test-client");
+    vi.spyOn(Math, "random").mockReturnValue(0.25);
+
+    const game = useGame();
+
+    await game.fetchDictionary();
+
+    expect(game.isDailyGame.value).toBe(false);
+    expect(game.currentRandomSeed.value).toBe(1073741824);
+  });
+
+  it("clears the random seed and exposes a shareable date for daily games", async () => {
+    const game = useGame();
+
+    await game.fetchDictionary();
+    await game.resetGame(true);
+
+    expect(game.currentRandomSeed.value).toBeNull();
+    expect(game.currentDailyDate.value).toMatch(/^\d{4}-\d{2}-\d{2}$/u);
+  });
 });
