@@ -80,9 +80,16 @@
             </div>
           </div>
 
-          <button @click="handleNewGameClick" class="new-game-btn">
-            New Game
-          </button>
+          <EndgameButtons
+            :guesses="guesses"
+            :target-word="targetWord"
+            :word-length="wordLength"
+            :is-daily-game="isDailyGame"
+            :current-dictionary-version="currentDictionaryVersion"
+            :current-random-seed="currentRandomSeed"
+            :current-daily-date="currentDailyDate"
+            @new-game="handleNewGameClick"
+          />
         </div>
       </div>
     </footer>
@@ -121,6 +128,7 @@ import StatsModal from "./components/StatsModal.vue";
 import SettingsIcon from "./components/SettingsIcon.vue";
 import StatisticsIcon from "./components/StatisticsIcon.vue";
 import DailyGameIcon from "./components/DailyGameIcon.vue";
+import EndgameButtons from "./components/EndgameButtons.vue";
 import { useSettingsStore } from "./stores/settingsStore";
 import { useGame } from "./composables/useGame";
 
@@ -134,6 +142,7 @@ const settingsStore = useSettingsStore();
 // Game composable
 const {
   isLoading,
+  guesses,
   currentRow,
   targetWord,
   targetMeanings,
@@ -144,6 +153,9 @@ const {
   wordLength,
   gridStyle,
   isDailyGame,
+  currentDictionaryVersion,
+  currentRandomSeed,
+  currentDailyDate,
   fetchDictionary,
   resetGame,
   handleWordLengthChange,
@@ -532,26 +544,6 @@ main {
 .syn-label {
   font-weight: bold;
   color: #538d4e;
-}
-
-.new-game-btn {
-  background: linear-gradient(rgb(110, 169, 94), rgb(83, 125, 78));
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin: 4px;
-  flex-shrink: 0;
-  width: 100%;
-}
-
-.new-game-btn:hover {
-  background: linear-gradient(rgba(110, 169, 94, 0.8), rgba(83, 125, 78, 0.8));
-  transform: translateY(-1px);
 }
 
 .game-grid {

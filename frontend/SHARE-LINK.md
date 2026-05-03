@@ -215,7 +215,6 @@ Tests:
   1. Build the share URL from the current game (daily or random).
   2. Build the emoji result grid (Phase 3) and concatenate with the URL.
   3. If `navigator.share` is available, call it with `{ text }`. Otherwise, copy `text` to the clipboard via `navigator.clipboard.writeText` and show a brief "Copied!" toast (reuse `BaseToast.vue`).
-- For shared (incoming-challenge) games, the button **re-shares the same challenge link** but with the current player's emoji grid.
 
 ### Phase 5 — Receive shared link
 
