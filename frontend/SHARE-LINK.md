@@ -252,8 +252,6 @@ After a shared game ends:
 ### Phase 6 — Polish
 
 - Visual badge or banner during challenge mode (e.g., a small "🔗 Challenge" label near the grid).
-- Consolidated error toasts for invalid/expired/future-version links.
-- Optional: persist a small list of recent challenge links in localStorage so the user can re-find them. **Deferred unless requested.**
 
 ---
 
