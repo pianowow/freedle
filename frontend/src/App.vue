@@ -19,21 +19,29 @@
     </header>
 
     <main>
-      <div class="game-grid" :style="gridStyle">
-        <template v-for="(row, rowIndex) in 6" :key="rowIndex">
-          <div :class="['row', { shake: shakingRow === rowIndex }]">
-            <LetterTile
-              v-for="(col, colIndex) in wordLength"
-              :key="colIndex"
-              :letter="getLetter(rowIndex, colIndex)"
-              :color="getTileColor(rowIndex, colIndex)"
-              :delay="getTileDelay(rowIndex, colIndex)"
-              :count="getLetterCount(rowIndex, colIndex)"
-              :flip="shouldFlipTile(rowIndex)"
-              :is-current-row="rowIndex === currentRow"
-            />
-          </div>
-        </template>
+      <div class="board-stage">
+        <div v-if="isSharedGame" class="challenge-ribbon" aria-label="Challenge mode active">
+          <span class="challenge-ribbon-kicker">Challenge Mode</span>
+          <span class="challenge-ribbon-divider"></span>
+          <span class="challenge-ribbon-copy">Social game · stats disabled</span>
+        </div>
+
+        <div class="game-grid" :style="gridStyle">
+          <template v-for="(row, rowIndex) in 6" :key="rowIndex">
+            <div :class="['row', { shake: shakingRow === rowIndex }]">
+              <LetterTile
+                v-for="(col, colIndex) in wordLength"
+                :key="colIndex"
+                :letter="getLetter(rowIndex, colIndex)"
+                :color="getTileColor(rowIndex, colIndex)"
+                :delay="getTileDelay(rowIndex, colIndex)"
+                :count="getLetterCount(rowIndex, colIndex)"
+                :flip="shouldFlipTile(rowIndex)"
+                :is-current-row="rowIndex === currentRow"
+              />
+            </div>
+          </template>
+        </div>
       </div>
     </main>
 
@@ -166,6 +174,7 @@ const {
   wordLength,
   gridStyle,
   isDailyGame,
+  isSharedGame,
   currentDictionaryVersion,
   currentRandomSeed,
   currentDailyDate,
@@ -540,6 +549,59 @@ main {
   overflow: hidden;
 }
 
+.board-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.challenge-ribbon {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(100%, 420px);
+  padding: 8px 14px;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(8px);
+  animation: challengeFadeIn 0.35s ease-out;
+}
+
+.challenge-ribbon-kicker {
+  color: #9fd492;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.16rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.challenge-ribbon-divider {
+  width: 1px;
+  height: 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(159, 212, 146, 0),
+    rgba(159, 212, 146, 0.65),
+    rgba(159, 212, 146, 0)
+  );
+}
+
+.challenge-ribbon-copy {
+  color: #c7cec8;
+  font-size: 0.84rem;
+  letter-spacing: 0.02rem;
+  white-space: nowrap;
+}
+
 .game-status-area {
   flex-grow: 1;
   min-height: 80px; /* Reserve space for the toast */
@@ -766,6 +828,33 @@ footer.is-endgame {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes challengeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .challenge-ribbon {
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .challenge-ribbon-kicker {
+    font-size: 0.69rem;
+    letter-spacing: 0.12rem;
+  }
+
+  .challenge-ribbon-copy {
+    font-size: 0.75rem;
   }
 }
 </style>
