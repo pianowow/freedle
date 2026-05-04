@@ -239,7 +239,6 @@ Wired into `App.vue` `onMounted` (after `fetchDictionary` completes, or coordina
    - Set `activeWordLength` to the shared word's length (no change to settings).
    - Set `targetWord` and `targetMeanings` directly from the resolved word + dictionary entry.
    - Reset guesses, currentRow, keyStatuses, etc., as in a normal `resetGame`.
-   - Show a 3–4 second toast: **"You've been challenged! Social mode — achievements disabled this game"**.
    - **Skip** all stats/achievement recording in `handleKeyClick` when `isSharedGame === true`. This means **no `recordWin`, no `recordLoss`, no `gamesPlayed` increment.**
    - Event logging: still log `game-start`/`game-win`/`game-loss` to the backend with a `shared: true` flag for analytics. (The backend log is server-side telemetry, not stats)
 
@@ -307,7 +306,7 @@ Manual test matrix:
 3. **Phase 2** — Share codec utility + expose `currentRandomSeed`. _(Pure utility + small `useGame` change.)_
 4. **Phase 3** — Emoji result grid utility. _(Pure utility.)_
 5. **Phase 4** — Endgame Share button using Phases 2+3. _(UI.)_
-6. **Phase 5** — Receive shared link flow + challenge toast. _(UI + glue.)_
-7. **Phase 6** — Polish: badges, error UX, optional history list.
+6. **Phase 5** — Receive shared link flow. _(UI + glue.)_
+7. **Phase 6** — Polish: challenge mode badge
 
 Each phase should land with passing tests and no regressions before moving to the next.

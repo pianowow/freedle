@@ -295,14 +295,6 @@ async function resolveAndLoadSharedChallenge(shareData) {
       selectedWord,
     });
 
-    showAppToast({
-      title: "Challenge Accepted",
-      message: "You've been challenged! Social mode - achievements disabled this game",
-      icon: "🔗",
-      glowColor: "#446cc9",
-      duration: 4200,
-    });
-
     return true;
   } catch (error) {
     console.error("Failed to open shared challenge", error);
