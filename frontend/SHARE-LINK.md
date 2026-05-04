@@ -231,7 +231,7 @@ Wired into `App.vue` `onMounted` (after `fetchDictionary` completes, or coordina
 | Current state                     | Action                                                                                         |
 | --------------------------------- | ---------------------------------------------------------------------------------------------- |
 | No active game (fresh load)       | Load the challenge directly.                                                                   |
-| Random game in progress           | Show abandon-confirmation modal. Yes → load challenge. No → clear URL, do nothing.             |
+| Random game in progress           | Treat as "no active game" for v1 and load the challenge directly. Random-game resume is deferred to a separate feature: see issue 26. |
 | Daily game in progress            | Treat as "no active game" - load the challenge.                                                |
 
 8. When loading the challenge:
@@ -243,7 +243,7 @@ Wired into `App.vue` `onMounted` (after `fetchDictionary` completes, or coordina
    - **Skip** all stats/achievement recording in `handleKeyClick` when `isSharedGame === true`. This means **no `recordWin`, no `recordLoss`, no `gamesPlayed` increment.**
    - Event logging: still log `game-start`/`game-win`/`game-loss` to the backend with a `shared: true` flag for analytics. (The backend log is server-side telemetry, not stats)
 
-9. Always call `history.replaceState(null, '', window.location.pathname)` to clear the share params from the address bar after step 6 or 7, regardless of branch chosen.
+9. Always call `history.replaceState(null, '', window.location.pathname)` to clear the share params from the address bar after step 6 or 7.
 
 After a shared game ends:
 
@@ -280,7 +280,7 @@ Manual test matrix:
 
 - Random share: same dict version → works.
 - Daily share: today → works.
-- Receive link with random game in progress → abandon prompt: Yes loads challenge, No clears URL and resumes random.
+- Receive link with random game in progress → challenge loads directly for v1. Random-game resume/abandon UX is deferred to a separate feature.
 - Receive link with daily game in progress for today → loads challenge directly since daily game can be resumed.
 - Receive link with no game in progress → loads challenge directly.
 - Cross-length share: 5-letter shared with recipient on 6-letter setting → challenge plays at 5; settings remain 6 after challenge ends.
@@ -298,6 +298,7 @@ Manual test matrix:
 - **Recent challenges list** in localStorage for easy re-access.
 - **Server-side analytics** on share usage (counts, conversion to plays, etc.) using the existing JSONL event pipeline.
 - backend endpoints for share creation, share accepting, frontend calls to that as appropriate.  want to log errors on share links not working distinctly.  Surface errors in their own table in admin. 
+- **Persist in-progress random games across reload/navigation.** This is useful independently of share links. Once random games can be resumed, revisit whether challenge intake should offer an abandon/resume choice.
 
 ---
 
@@ -308,7 +309,7 @@ Manual test matrix:
 3. **Phase 2** — Share codec utility + expose `currentRandomSeed`. _(Pure utility + small `useGame` change.)_
 4. **Phase 3** — Emoji result grid utility. _(Pure utility.)_
 5. **Phase 4** — Endgame Share button using Phases 2+3. _(UI.)_
-6. **Phase 5** — Receive shared link flow + abandon modal + challenge toast. _(UI + glue.)_
+6. **Phase 5** — Receive shared link flow + challenge toast. _(UI + glue.)_
 7. **Phase 6** — Polish: badges, error UX, optional history list.
 
 Each phase should land with passing tests and no regressions before moving to the next.

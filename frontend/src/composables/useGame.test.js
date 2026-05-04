@@ -2,7 +2,12 @@ import { createPinia, setActivePinia } from "pinia";
 import { nextTick } from "vue";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useStatsStore } from "../stores/statsStore";
-import { useGame, evaluateTileColor, validateHardModeGuess } from "./useGame";
+import {
+  useGame,
+  evaluateTileColor,
+  resolveSharedChallengeWord,
+  validateHardModeGuess,
+} from "./useGame";
 import { LATEST_DICT_VERSION } from "../constants/dictionary";
 
 const mockDictionary = {
@@ -187,5 +192,113 @@ describe("useGame word length handling", () => {
 
     expect(game.currentRandomSeed.value).toBeNull();
     expect(game.currentDailyDate.value).toMatch(/^\d{4}-\d{2}-\d{2}$/u);
+  });
+
+  it("reconstructs a shared challenge word from the encoded daily or random metadata", () => {
+    const dictionaryData = {
+      dictionary: mockDictionary,
+      answerWords: {
+        4: ["LION"],
+        5: ["CRANE"],
+        6: ["PLANET"],
+      },
+    };
+
+    expect(
+      resolveSharedChallengeWord(
+        {
+          type: "daily",
+          version: 1,
+          date: "2026-04-28",
+          length: 5,
+          hash: "unused-in-selection",
+        },
+        dictionaryData,
+      ),
+    ).toEqual({
+      word: "CRANE",
+      meanings: [],
+    });
+
+    expect(
+      resolveSharedChallengeWord(
+        {
+          type: "random",
+          version: 1,
+          seed: 23457283,
+          length: 6,
+          hash: "unused-in-selection",
+        },
+        dictionaryData,
+      ),
+    ).toEqual({
+      word: "PLANET",
+      meanings: [],
+    });
+  });
+
+  it("loads a shared challenge without mutating settings and keeps its original metadata", async () => {
+    const settingsStore = useSettingsStore();
+    const game = useGame();
+
+    await game.fetchDictionary({ startGame: false });
+
+    expect(settingsStore.wordLength).toBe(5);
+
+    await game.loadSharedGame({
+      shareData: {
+        type: "daily",
+        version: 1,
+        date: "2026-04-28",
+        length: 4,
+        hash: "unused-in-load",
+      },
+      dictionaryData: await game.loadDictionaryVersion(1),
+      selectedWord: {
+        word: "LION",
+        meanings: [],
+      },
+    });
+
+    expect(game.isSharedGame.value).toBe(true);
+    expect(game.isDailyGame.value).toBe(true);
+    expect(game.wordLength.value).toBe(4);
+    expect(settingsStore.wordLength).toBe(5);
+    expect(game.currentDailyDate.value).toBe("2026-04-28");
+    expect(game.currentRandomSeed.value).toBeNull();
+    expect(game.targetWord.value).toBe("LION");
+    expect(game.guesses.value).toEqual(["", "", "", "", "", ""]);
+  });
+
+  it("does not record stats for shared games", async () => {
+    const statsStore = useStatsStore();
+    const game = useGame();
+
+    await game.fetchDictionary({ startGame: false });
+    await game.loadSharedGame({
+      shareData: {
+        type: "random",
+        version: 1,
+        seed: 23457283,
+        length: 5,
+        hash: "unused-in-load",
+      },
+      dictionaryData: await game.loadDictionaryVersion(1),
+      selectedWord: {
+        word: "CRANE",
+        meanings: [],
+      },
+    });
+
+    game.guesses.value = ["CRANE", "", "", "", "", ""];
+    game.handleKeyClick("Enter");
+    vi.advanceTimersByTime(2000);
+    await nextTick();
+
+    expect(game.gameState.value).toBe("won");
+    expect(game.isSharedGame.value).toBe(true);
+    expect(statsStore.gamesPlayed).toBe(0);
+    expect(statsStore.gamesWon).toBe(0);
+    expect(statsStore.winsBy5Letter).toBe(0);
   });
 });

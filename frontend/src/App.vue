@@ -99,9 +99,19 @@
       :achievement="newAchievement || {}"
     />
 
-    <div v-if="isLoading" class="loading-overlay">
+    <BaseToast
+      :show="appToast.show"
+      :glow-color="appToast.glowColor"
+      position="top-fixed"
+    >
+      <template #icon>{{ appToast.icon }}</template>
+      <template #title>{{ appToast.title }}</template>
+      <template #message>{{ appToast.message }}</template>
+    </BaseToast>
+
+    <div v-if="isLoading || isHandlingShare" class="loading-overlay">
       <div class="loader"></div>
-      <p>Loading Dictionary...</p>
+      <p>{{ loadingMessage }}</p>
     </div>
 
     <!-- Modals -->
@@ -116,11 +126,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import LetterTile from "./components/LetterTile.vue";
 import VirtualKeyboard from "./components/VirtualKeyboard.vue";
 import { useRegisterSW } from "virtual:pwa-register/vue";
 import AchievementToast from "./components/AchievementToast.vue";
+import BaseToast from "./components/BaseToast.vue";
 import ValidationToast from "./components/ValidationToast.vue";
 import ReloadToast from "./components/ReloadToast.vue";
 import SettingsModal from "./components/SettingsModal.vue";
@@ -129,8 +140,10 @@ import SettingsIcon from "./components/SettingsIcon.vue";
 import StatisticsIcon from "./components/StatisticsIcon.vue";
 import DailyGameIcon from "./components/DailyGameIcon.vue";
 import EndgameButtons from "./components/EndgameButtons.vue";
+import { LATEST_DICT_VERSION } from "./constants/dictionary";
 import { useSettingsStore } from "./stores/settingsStore";
-import { useGame } from "./composables/useGame";
+import { resolveSharedChallengeWord, useGame } from "./composables/useGame";
+import { parseShareParams, verifyShare } from "./utils/shareLink";
 
 // PWA
 const { needRefresh, updateServiceWorker } = useRegisterSW();
@@ -157,6 +170,8 @@ const {
   currentRandomSeed,
   currentDailyDate,
   fetchDictionary,
+  loadDictionaryVersion,
+  loadSharedGame,
   resetGame,
   handleWordLengthChange,
   getLetter,
@@ -174,6 +189,20 @@ const currentDayOfMonth = ref(new Date().getDate());
 // Modal visibility
 const showSettingsModal = ref(false);
 const showStatsModal = ref(false);
+const isHandlingShare = ref(false);
+const loadingMessage = computed(() =>
+  isHandlingShare.value ? "Loading Challenge..." : "Loading Dictionary...",
+);
+
+const appToast = ref({
+  show: false,
+  title: "",
+  message: "",
+  icon: "🔗",
+  glowColor: "#446cc9",
+});
+
+let appToastTimerId = null;
 
 // Handle daily game button click
 function handleDailyGameClick() {
@@ -188,6 +217,105 @@ function handleDailyGameClick() {
 
 function handleNewGameClick() {
   resetGame();
+}
+
+function showAppToast({
+  title,
+  message,
+  icon = "🔗",
+  glowColor = "#446cc9",
+  duration = 3200,
+}) {
+  appToast.value = {
+    show: true,
+    title,
+    message,
+    icon,
+    glowColor,
+  };
+
+  if (appToastTimerId !== null) {
+    clearTimeout(appToastTimerId);
+  }
+
+  appToastTimerId = window.setTimeout(() => {
+    appToast.value = {
+      ...appToast.value,
+      show: false,
+    };
+    appToastTimerId = null;
+  }, duration);
+}
+
+function clearShareParamsFromAddressBar() {
+  window.history.replaceState(null, "", window.location.pathname);
+}
+
+async function resolveAndLoadSharedChallenge(shareData) {
+  if (shareData.version > LATEST_DICT_VERSION) {
+    showAppToast({
+      title: "Update Required",
+      message: "Update Freedle to play this challenge",
+      icon: "⬆️",
+      glowColor: "#d6932f",
+      duration: 3600,
+    });
+    return false;
+  }
+
+  try {
+    const dictionaryData = await loadDictionaryVersion(shareData.version);
+    const selectedWord = resolveSharedChallengeWord(shareData, dictionaryData);
+    const verified = selectedWord !== null &&
+      await verifyShare(shareData, selectedWord.word);
+
+    if (!verified || selectedWord === null) {
+      showAppToast({
+        title: "Invalid Challenge",
+        message: "This challenge link is invalid or from a modified dictionary",
+        icon: "⚠️",
+        glowColor: "#c94444",
+        duration: 3800,
+      });
+      return false;
+    }
+
+    await loadSharedGame({
+      shareData,
+      dictionaryData,
+      selectedWord,
+    });
+
+    showAppToast({
+      title: "Challenge Accepted",
+      message: "You've been challenged! Social mode - achievements disabled this game",
+      icon: "🔗",
+      glowColor: "#446cc9",
+      duration: 4200,
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Failed to open shared challenge", error);
+    showAppToast({
+      title: "Challenge Unavailable",
+      message: error?.message || "Could not open this challenge link.",
+      icon: "⚠️",
+      glowColor: "#c94444",
+      duration: 3800,
+    });
+    return false;
+  }
+}
+
+async function handleSharedChallenge(shareData) {
+  if (!shareData) {
+    return false;
+  }
+
+  const loaded = await resolveAndLoadSharedChallenge(shareData);
+  clearShareParamsFromAddressBar();
+  return loaded;
 }
 
 // Achievement notification
@@ -222,7 +350,9 @@ function onKeyClick(key) {
 
 function handlePhysicalKeyDown(event) {
   // Don't handle keyboard when modals are open
-  if (showSettingsModal.value || showStatsModal.value) return;
+  if (showSettingsModal.value || showStatsModal.value) {
+    return;
+  }
   if (event.ctrlKey || event.altKey || event.metaKey) return;
   let key = event.key;
   const isLetter = /^[a-zA-Z]$/.test(key);
@@ -261,7 +391,32 @@ onMounted(() => {
   window.addEventListener("keyup", handlePhysicalKeyUp);
   window.addEventListener("touchend", handlePhysicalKeyUp);
   document.addEventListener("visibilitychange", handleVisibilityChange);
-  fetchDictionary();
+
+  const boot = async () => {
+    const sharedChallenge = parseShareParams(
+      new URLSearchParams(window.location.search),
+    );
+
+    if (!sharedChallenge) {
+      await fetchDictionary();
+      return;
+    }
+
+    isHandlingShare.value = true;
+
+    try {
+      await fetchDictionary({ startGame: false });
+      const loaded = await handleSharedChallenge(sharedChallenge);
+
+      if (!loaded && !targetWord.value) {
+        await resetGame();
+      }
+    } finally {
+      isHandlingShare.value = false;
+    }
+  };
+
+  boot();
 });
 
 onUnmounted(() => {
@@ -269,6 +424,10 @@ onUnmounted(() => {
   window.removeEventListener("keyup", handlePhysicalKeyUp);
   window.removeEventListener("touchend", handlePhysicalKeyUp);
   document.removeEventListener("visibilitychange", handleVisibilityChange);
+
+  if (appToastTimerId !== null) {
+    clearTimeout(appToastTimerId);
+  }
 });
 </script>
 

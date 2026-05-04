@@ -27,6 +27,64 @@ function formatDateKey(dateKey) {
   return `${year}-${month}-${day}`;
 }
 
+function parseFormattedDateKey(date) {
+  const normalized = String(date ?? "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) return null;
+
+  return Number(normalized.replaceAll("-", ""));
+}
+
+function createEmptyGuesses() {
+  return ["", "", "", "", "", ""];
+}
+
+function getWordSelectionForSeed({ dictionary, answerWords, length, seed }) {
+  const words = answerWords?.[length];
+  if (!Array.isArray(words) || words.length === 0) {
+    return null;
+  }
+
+  const rng = seededRandom(seed);
+  const selectedWord = words[Math.floor(rng() * words.length)];
+  const wordData = dictionary?.[selectedWord.toLowerCase()];
+
+  return {
+    word: selectedWord,
+    meanings: wordData ? wordData.meanings : [],
+  };
+}
+
+export function resolveSharedChallengeWord(sharedGame, dictionaryData) {
+  if (!sharedGame || !dictionaryData) {
+    return null;
+  }
+
+  if (sharedGame.type === "daily") {
+    const dateKey = parseFormattedDateKey(sharedGame.date);
+    if (dateKey === null) {
+      return null;
+    }
+
+    return getWordSelectionForSeed({
+      dictionary: dictionaryData.dictionary,
+      answerWords: dictionaryData.answerWords,
+      length: sharedGame.length,
+      seed: dateKey + sharedGame.length,
+    });
+  }
+
+  if (sharedGame.type === "random") {
+    return getWordSelectionForSeed({
+      dictionary: dictionaryData.dictionary,
+      answerWords: dictionaryData.answerWords,
+      length: sharedGame.length,
+      seed: sharedGame.seed,
+    });
+  }
+
+  return null;
+}
+
 export function evaluateTileColor(guess, target, colIndex) {
   const normalizedGuess = guess.toUpperCase();
   const normalizedTarget = target.toUpperCase();
@@ -121,12 +179,13 @@ export function useGame() {
   // Game state
   const isLoading = ref(true);
   const isDailyGame = ref(false);
+  const isSharedGame = ref(false);
   const dictionary = ref({});
   const allowedGuesses = ref({ 4: [], 5: [], 6: [] });
   const answerWords = ref({ 4: [], 5: [], 6: [] });
   const currentDictionaryVersion = ref(LATEST_DICT_VERSION);
   const currentRandomSeed = ref(null);
-  const currentDailyDate = computed(() => formatDateKey(dailyGameStore.dateKey));
+  const currentDailyDate = ref("");
   const guesses = ref(["", "", "", "", "", ""]);
   const currentRow = ref(0);
   const targetWord = ref("");
@@ -154,28 +213,18 @@ export function useGame() {
   }
 
   function getRandomWord(length, daily = false, randomSeed = null) {
-    const words = answerWords.value[length];
-    if (!words || words.length === 0) return null;
-
-    let selectedWord;
-    if (daily) {
-      // Use seeded random for daily game
-      const seed = dailyGameStore.dateKey + length; // Add length to vary by word length
-      const rng = seededRandom(seed);
-      selectedWord = words[Math.floor(rng() * words.length)];
-    } else {
-      const seed = Number.isInteger(randomSeed)
+    const seed = daily
+      ? dailyGameStore.dateKey + length
+      : Number.isInteger(randomSeed)
         ? randomSeed
         : Math.floor(Math.random() * 2 ** 32);
-      const rng = seededRandom(seed);
-      selectedWord = words[Math.floor(rng() * words.length)];
-    }
 
-    const wordData = dictionary.value[selectedWord.toLowerCase()];
-    return {
-      word: selectedWord,
-      meanings: wordData ? wordData.meanings : [],
-    };
+    return getWordSelectionForSeed({
+      dictionary: dictionary.value,
+      answerWords: answerWords.value,
+      length,
+      seed,
+    });
   }
 
   // Persistent client-side ID
@@ -232,13 +281,62 @@ export function useGame() {
     }
   }
 
+  function applyDictionaryData(version, dictionaryData) {
+    dictionary.value = dictionaryData.dictionary;
+    allowedGuesses.value = dictionaryData.allowedGuesses;
+    answerWords.value = dictionaryData.answerWords;
+    currentDictionaryVersion.value = version;
+  }
+
+  function resetRoundState() {
+    guesses.value = createEmptyGuesses();
+    currentRow.value = 0;
+    gameState.value = "playing";
+    message.value = "";
+    shakingRow.value = -1;
+    keyStatuses.value = {};
+    justSubmittedRow.value = -1;
+  }
+
+  function logDevTargetWord({ restored = false } = {}) {
+    if (!import.meta.env.DEV || !targetWord.value) {
+      return;
+    }
+
+    const mode = isSharedGame.value
+      ? "Shared"
+      : isDailyGame.value
+        ? "Daily"
+        : "Random";
+    const restoredLabel = restored ? " Restored" : "";
+
+    console.log(`[DEV] ${mode}${restoredLabel} Word: ${targetWord.value}`);
+  }
+
+  async function ensureDictionaryVersion(version) {
+    if (
+      currentDictionaryVersion.value === version &&
+      Object.keys(dictionary.value).length > 0
+    ) {
+      return;
+    }
+
+    const dictionaryData = await loadDictionaryVersion(version);
+    applyDictionaryData(version, dictionaryData);
+  }
+
   async function resetGame(daily = false) {
+    await ensureDictionaryVersion(LATEST_DICT_VERSION);
+
+    isSharedGame.value = false;
     isDailyGame.value = daily;
     activeWordLength.value = settingsStore.wordLength;
+    currentDailyDate.value = "";
     currentRandomSeed.value = daily ? null : Math.floor(Math.random() * 2 ** 32);
     // If daily game, try to restore saved state
     if (daily) {
       const savedState = dailyGameStore.getGameState(wordLength.value);
+      currentDailyDate.value = formatDateKey(dailyGameStore.dateKey);
       if (savedState) {
         justSubmittedRow.value = -1; // No row was just submitted on restore
         message.value = "";
@@ -250,20 +348,12 @@ export function useGame() {
         targetMeanings.value = savedState.targetMeanings;
         keyStatuses.value = savedState.keyStatuses;
         settingsStore.hardMode = savedState.hardMode;
-        if (import.meta.env.DEV) {
-          console.log(`[DEV] Restored Daily Game: ${targetWord.value}`);
-        }
+        logDevTargetWord({ restored: true });
         return;
       }
     }
     // Fresh game start
-    guesses.value = ["", "", "", "", "", ""];
-    currentRow.value = 0;
-    gameState.value = "playing";
-    message.value = "";
-    shakingRow.value = -1;
-    keyStatuses.value = {};
-    justSubmittedRow.value = -1;
+    resetRoundState();
     const selected = getRandomWord(
       wordLength.value,
       daily,
@@ -275,24 +365,44 @@ export function useGame() {
       if (daily) {
         saveDailyGameState();
       }
-      // Debug info in dev mode
-      if (import.meta.env.DEV) {
-        console.log(
-          `[DEV] Target Word: ${targetWord.value}${daily ? " (Daily)" : ""}`,
-        );
-      }
+      logDevTargetWord();
     }
     await logGameStart({
       daily: daily,
       word: targetWord.value,
       length: wordLength.value,
       viewport: window.innerWidth + "x" + window.innerHeight,
+      shared: false,
+    });
+  }
+
+  async function loadSharedGame({ shareData, dictionaryData, selectedWord }) {
+    applyDictionaryData(shareData.version, dictionaryData);
+
+    isSharedGame.value = true;
+    isDailyGame.value = shareData.type === "daily";
+    activeWordLength.value = shareData.length;
+    currentDailyDate.value = shareData.type === "daily" ? shareData.date : "";
+    currentRandomSeed.value = shareData.type === "random" ? shareData.seed : null;
+
+    resetRoundState();
+
+    targetWord.value = selectedWord.word;
+    targetMeanings.value = selectedWord.meanings;
+    logDevTargetWord();
+
+    await logGameStart({
+      daily: isDailyGame.value,
+      word: targetWord.value,
+      length: wordLength.value,
+      viewport: window.innerWidth + "x" + window.innerHeight,
+      shared: true,
     });
   }
 
   // Helper to save current daily game state
   function saveDailyGameState() {
-    if (!isDailyGame.value) return;
+    if (!isDailyGame.value || isSharedGame.value) return;
     dailyGameStore.saveGameState(wordLength.value, {
       guesses: guesses.value,
       currentRow: currentRow.value,
@@ -395,19 +505,15 @@ export function useGame() {
     }
   }
 
-  async function fetchDictionary() {
+  async function fetchDictionary({ startGame = true } = {}) {
     try {
       isLoading.value = true;
       const latestDictionary = await loadDictionaryVersion(LATEST_DICT_VERSION);
-      const { dictionary: dictData, allowedGuesses: valid, answerWords: answers } =
-        latestDictionary;
-
-      dictionary.value = dictData;
-      allowedGuesses.value = valid;
-      answerWords.value = answers;
-      currentDictionaryVersion.value = LATEST_DICT_VERSION;
+      applyDictionaryData(LATEST_DICT_VERSION, latestDictionary);
       message.value = "";
-      await resetGame();
+      if (startGame) {
+        await resetGame();
+      }
     } catch (error) {
       console.error("Failed to load dictionary:", error);
       if (error.message.startsWith("Dictionary version ")) {
@@ -532,15 +638,18 @@ export function useGame() {
               logGameWin({
                 word: targetWord.value,
                 guessCount: currentRow.value,
+                shared: isSharedGame.value,
               });
-              const newAchievements = statsStore.recordWin(
-                currentRow.value,
-                wordLength.value,
-                {
-                  hardMode: settingsStore.hardMode,
-                  countMode: settingsStore.countMode,
-                },
-              );
+              const newAchievements = isSharedGame.value
+                ? []
+                : statsStore.recordWin(
+                  currentRow.value,
+                  wordLength.value,
+                  {
+                    hardMode: settingsStore.hardMode,
+                    countMode: settingsStore.countMode,
+                  },
+                );
               if (newAchievements.length > 0 && onAchievements) {
                 onAchievements(newAchievements);
               }
@@ -549,8 +658,11 @@ export function useGame() {
               logGameLoss({
                 word: targetWord.value,
                 lastGuess: guessUpper,
+                shared: isSharedGame.value,
               });
-              const newAchievements = statsStore.recordLoss();
+              const newAchievements = isSharedGame.value
+                ? []
+                : statsStore.recordLoss();
               if (newAchievements.length > 0 && onAchievements) {
                 onAchievements(newAchievements);
               }
@@ -589,10 +701,12 @@ export function useGame() {
     wordLength,
     gridStyle,
     isDailyGame,
+    isSharedGame,
     currentDictionaryVersion,
     currentRandomSeed,
     currentDailyDate,
     loadDictionaryVersion,
+    loadSharedGame,
 
     // Methods
     fetchDictionary,
