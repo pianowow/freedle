@@ -1,6 +1,9 @@
 import { defineConfig } from 'vite'
 import vue from '@vitejs/plugin-vue'
 import { VitePWA } from 'vite-plugin-pwa'
+import { LATEST_DICT_VERSION } from './src/constants/dictionary.js'
+
+const dictPath = `data/target-dictionary-v${LATEST_DICT_VERSION}.json`;
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -20,7 +23,7 @@ export default defineConfig({
         globPatterns: ['**/*.{js,css,html,ico,png,svg,txt,webmanifest}'],
         additionalManifestEntries: [
           { url: 'manifest.json', revision: null },
-          { url: 'data/target-dictionary-v1.json', revision: null },
+          { url: dictPath, revision: null },
         ],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024,
       },
