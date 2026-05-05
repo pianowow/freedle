@@ -2,6 +2,10 @@ import { ref, computed } from "vue";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useStatsStore } from "../stores/statsStore";
 import { useDailyGameStore } from "../stores/dailyGameStore";
+import {
+  DATA_CACHE_NAME,
+  LATEST_DICT_VERSION,
+} from "../constants/dictionary";
 
 // Seeded random number generator (mulberry32)
 function seededRandom(seed) {
@@ -11,6 +15,74 @@ function seededRandom(seed) {
     t ^= t + Math.imul(t ^ (t >>> 7), t | 61);
     return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
   };
+}
+
+function formatDateKey(dateKey) {
+  const normalized = String(dateKey ?? "");
+  if (!/^\d{8}$/.test(normalized)) return "";
+
+  const year = normalized.slice(0, 4);
+  const month = normalized.slice(4, 6);
+  const day = normalized.slice(6, 8);
+  return `${year}-${month}-${day}`;
+}
+
+function parseFormattedDateKey(date) {
+  const normalized = String(date ?? "");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(normalized)) return null;
+
+  return Number(normalized.replaceAll("-", ""));
+}
+
+function createEmptyGuesses() {
+  return ["", "", "", "", "", ""];
+}
+
+function getWordSelectionForSeed({ dictionary, answerWords, length, seed }) {
+  const words = answerWords?.[length];
+  if (!Array.isArray(words) || words.length === 0) {
+    return null;
+  }
+
+  const rng = seededRandom(seed);
+  const selectedWord = words[Math.floor(rng() * words.length)];
+  const wordData = dictionary?.[selectedWord.toLowerCase()];
+
+  return {
+    word: selectedWord,
+    meanings: wordData ? wordData.meanings : [],
+  };
+}
+
+export function resolveSharedChallengeWord(sharedGame, dictionaryData) {
+  if (!sharedGame || !dictionaryData) {
+    return null;
+  }
+
+  if (sharedGame.type === "daily") {
+    const dateKey = parseFormattedDateKey(sharedGame.date);
+    if (dateKey === null) {
+      return null;
+    }
+
+    return getWordSelectionForSeed({
+      dictionary: dictionaryData.dictionary,
+      answerWords: dictionaryData.answerWords,
+      length: sharedGame.length,
+      seed: dateKey + sharedGame.length,
+    });
+  }
+
+  if (sharedGame.type === "random") {
+    return getWordSelectionForSeed({
+      dictionary: dictionaryData.dictionary,
+      answerWords: dictionaryData.answerWords,
+      length: sharedGame.length,
+      seed: sharedGame.seed,
+    });
+  }
+
+  return null;
 }
 
 export function evaluateTileColor(guess, target, colIndex) {
@@ -95,20 +167,25 @@ export function validateHardModeGuess(previousGuesses, guess, target) {
 }
 
 export function useGame() {
-  const DATA_CACHE_NAME = "freedle-static-data-v1";
   const settingsStore = useSettingsStore();
   const statsStore = useStatsStore();
   const dailyGameStore = useDailyGameStore();
+  const dictionaryVersionCache = new Map();
 
-  // Word length from settings store
-  const wordLength = computed(() => settingsStore.wordLength);
+  // Active word length can temporarily diverge from persisted settings.
+  const activeWordLength = ref(settingsStore.wordLength);
+  const wordLength = computed(() => activeWordLength.value);
 
   // Game state
   const isLoading = ref(true);
   const isDailyGame = ref(false);
+  const isSharedGame = ref(false);
   const dictionary = ref({});
   const allowedGuesses = ref({ 4: [], 5: [], 6: [] });
   const answerWords = ref({ 4: [], 5: [], 6: [] });
+  const currentDictionaryVersion = ref(LATEST_DICT_VERSION);
+  const currentRandomSeed = ref(null);
+  const currentDailyDate = ref("");
   const guesses = ref(["", "", "", "", "", ""]);
   const currentRow = ref(0);
   const targetWord = ref("");
@@ -124,25 +201,30 @@ export function useGame() {
     "--cols": wordLength.value,
   }));
 
-  function getRandomWord(length, daily = false) {
-    const words = answerWords.value[length];
-    if (!words || words.length === 0) return null;
+  function createWordBuckets() {
+    return { 4: [], 5: [], 6: [] };
+  }
 
-    let selectedWord;
-    if (daily) {
-      // Use seeded random for daily game
-      const seed = dailyGameStore.dateKey + length; // Add length to vary by word length
-      const rng = seededRandom(seed);
-      selectedWord = words[Math.floor(rng() * words.length)];
-    } else {
-      selectedWord = words[Math.floor(Math.random() * words.length)];
-    }
-
-    const wordData = dictionary.value[selectedWord.toLowerCase()];
+  function getVersionedDataFiles(version) {
     return {
-      word: selectedWord,
-      meanings: wordData ? wordData.meanings : [],
+      dictionaryFile: `target-dictionary-v${version}.json`,
+      allowedGuessesFile: `allowed-guesses-v${version}.txt`,
     };
+  }
+
+  function getRandomWord(length, daily = false, randomSeed = null) {
+    const seed = daily
+      ? dailyGameStore.dateKey + length
+      : Number.isInteger(randomSeed)
+        ? randomSeed
+        : Math.floor(Math.random() * 2 ** 32);
+
+    return getWordSelectionForSeed({
+      dictionary: dictionary.value,
+      answerWords: answerWords.value,
+      length,
+      seed,
+    });
   }
 
   // Persistent client-side ID
@@ -199,11 +281,62 @@ export function useGame() {
     }
   }
 
+  function applyDictionaryData(version, dictionaryData) {
+    dictionary.value = dictionaryData.dictionary;
+    allowedGuesses.value = dictionaryData.allowedGuesses;
+    answerWords.value = dictionaryData.answerWords;
+    currentDictionaryVersion.value = version;
+  }
+
+  function resetRoundState() {
+    guesses.value = createEmptyGuesses();
+    currentRow.value = 0;
+    gameState.value = "playing";
+    message.value = "";
+    shakingRow.value = -1;
+    keyStatuses.value = {};
+    justSubmittedRow.value = -1;
+  }
+
+  function logDevTargetWord({ restored = false } = {}) {
+    if (!import.meta.env.DEV || !targetWord.value) {
+      return;
+    }
+
+    const mode = isSharedGame.value
+      ? "Shared"
+      : isDailyGame.value
+        ? "Daily"
+        : "Random";
+    const restoredLabel = restored ? " Restored" : "";
+
+    console.log(`[DEV] ${mode}${restoredLabel} Word: ${targetWord.value}`);
+  }
+
+  async function ensureDictionaryVersion(version) {
+    if (
+      currentDictionaryVersion.value === version &&
+      Object.keys(dictionary.value).length > 0
+    ) {
+      return;
+    }
+
+    const dictionaryData = await loadDictionaryVersion(version);
+    applyDictionaryData(version, dictionaryData);
+  }
+
   async function resetGame(daily = false) {
+    await ensureDictionaryVersion(LATEST_DICT_VERSION);
+
+    isSharedGame.value = false;
     isDailyGame.value = daily;
+    activeWordLength.value = settingsStore.wordLength;
+    currentDailyDate.value = "";
+    currentRandomSeed.value = daily ? null : Math.floor(Math.random() * 2 ** 32);
     // If daily game, try to restore saved state
     if (daily) {
       const savedState = dailyGameStore.getGameState(wordLength.value);
+      currentDailyDate.value = formatDateKey(dailyGameStore.dateKey);
       if (savedState) {
         justSubmittedRow.value = -1; // No row was just submitted on restore
         message.value = "";
@@ -215,45 +348,61 @@ export function useGame() {
         targetMeanings.value = savedState.targetMeanings;
         keyStatuses.value = savedState.keyStatuses;
         settingsStore.hardMode = savedState.hardMode;
-        if (import.meta.env.DEV) {
-          console.log(`[DEV] Restored Daily Game: ${targetWord.value}`);
-        }
+        logDevTargetWord({ restored: true });
         return;
       }
     }
     // Fresh game start
-    guesses.value = ["", "", "", "", "", ""];
-    currentRow.value = 0;
-    gameState.value = "playing";
-    message.value = "";
-    shakingRow.value = -1;
-    keyStatuses.value = {};
-    justSubmittedRow.value = -1;
-    const selected = getRandomWord(wordLength.value, daily);
+    resetRoundState();
+    const selected = getRandomWord(
+      wordLength.value,
+      daily,
+      currentRandomSeed.value,
+    );
     if (selected) {
       targetWord.value = selected.word;
       targetMeanings.value = selected.meanings;
       if (daily) {
         saveDailyGameState();
       }
-      // Debug info in dev mode
-      if (import.meta.env.DEV) {
-        console.log(
-          `[DEV] Target Word: ${targetWord.value}${daily ? " (Daily)" : ""}`,
-        );
-      }
+      logDevTargetWord();
     }
     await logGameStart({
       daily: daily,
       word: targetWord.value,
       length: wordLength.value,
       viewport: window.innerWidth + "x" + window.innerHeight,
+      shared: false,
+    });
+  }
+
+  async function loadSharedGame({ shareData, dictionaryData, selectedWord }) {
+    applyDictionaryData(shareData.version, dictionaryData);
+
+    isSharedGame.value = true;
+    isDailyGame.value = shareData.type === "daily";
+    activeWordLength.value = shareData.length;
+    currentDailyDate.value = shareData.type === "daily" ? shareData.date : "";
+    currentRandomSeed.value = shareData.type === "random" ? shareData.seed : null;
+
+    resetRoundState();
+
+    targetWord.value = selectedWord.word;
+    targetMeanings.value = selectedWord.meanings;
+    logDevTargetWord();
+
+    await logGameStart({
+      daily: isDailyGame.value,
+      word: targetWord.value,
+      length: wordLength.value,
+      viewport: window.innerWidth + "x" + window.innerHeight,
+      shared: true,
     });
   }
 
   // Helper to save current daily game state
   function saveDailyGameState() {
-    if (!isDailyGame.value) return;
+    if (!isDailyGame.value || isSharedGame.value) return;
     dailyGameStore.saveGameState(wordLength.value, {
       guesses: guesses.value,
       currentRow: currentRow.value,
@@ -265,66 +414,113 @@ export function useGame() {
     });
   }
 
-  async function fetchDictionary() {
-    const buildDataUrl = (fileName) => `${import.meta.env.BASE_URL}data/${fileName}`;
-    const fetchWithOfflineCache = async (fileName) => {
-      const url = buildDataUrl(fileName);
-      const cache = typeof window !== "undefined" && "caches" in window
-        ? await caches.open(DATA_CACHE_NAME)
-        : null;
+  const buildDataUrl = (fileName) => `${import.meta.env.BASE_URL}data/${fileName}`;
+
+  const fetchWithOfflineCache = async (fileName) => {
+    const url = buildDataUrl(fileName);
+    const cache = typeof window !== "undefined" && "caches" in window
+      ? await caches.open(DATA_CACHE_NAME)
+      : null;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        const fetchError = new Error(`Failed to fetch ${fileName}: ${response.status}`);
+        fetchError.status = response.status;
+        fetchError.fileName = fileName;
+        throw fetchError;
+      }
+      if (cache) {
+        await cache.put(url, response.clone());
+      }
+      return response;
+    } catch (error) {
+      if (cache) {
+        const cachedResponse = await cache.match(url);
+        if (cachedResponse) {
+          return cachedResponse;
+        }
+      }
+      throw error;
+    }
+  };
+
+  async function loadDictionaryVersion(version) {
+    if (!Number.isInteger(version) || version < 1) {
+      throw new Error(`Invalid dictionary version: ${version}`);
+    }
+
+    if (dictionaryVersionCache.has(version)) {
+      return dictionaryVersionCache.get(version);
+    }
+
+    const loadPromise = (async () => {
+      const { dictionaryFile, allowedGuessesFile } = getVersionedDataFiles(version);
 
       try {
-        const response = await fetch(url);
-        if (!response.ok) {
-          throw new Error(`Failed to fetch ${fileName}: ${response.status}`);
-        }
-        if (cache) {
-          await cache.put(url, response.clone());
-        }
-        return response;
-      } catch (error) {
-        if (cache) {
-          const cachedResponse = await cache.match(url);
-          if (cachedResponse) {
-            return cachedResponse;
+        const [dictRes, allowedRes] = await Promise.all([
+          fetchWithOfflineCache(dictionaryFile),
+          fetchWithOfflineCache(allowedGuessesFile),
+        ]);
+
+        const dictData = await dictRes.json();
+        const allowedText = await allowedRes.text();
+        const valid = createWordBuckets();
+        const answers = createWordBuckets();
+
+        allowedText.split("\n").forEach((line) => {
+          const word = line.trim().toUpperCase();
+          if (word && word.length >= 4 && word.length <= 6) {
+            valid[word.length].push(word);
           }
+        });
+
+        Object.keys(dictData).forEach((word) => {
+          const len = word.length;
+          if (answers[len]) {
+            answers[len].push(word.toUpperCase());
+          }
+        });
+
+        return {
+          dictionary: dictData,
+          allowedGuesses: valid,
+          answerWords: answers,
+        };
+      } catch (error) {
+        if (error?.status === 404) {
+          throw new Error(`Dictionary version ${version} is unavailable.`);
         }
         throw error;
       }
-    };
+    })();
+
+    dictionaryVersionCache.set(version, loadPromise);
 
     try {
+      return await loadPromise;
+    } catch (error) {
+      dictionaryVersionCache.delete(version);
+      throw error;
+    }
+  }
+
+  async function fetchDictionary({ startGame = true } = {}) {
+    try {
       isLoading.value = true;
-      // Fetch dictionary (common words with definitions) and allowed guesses
-      const [dictRes, allowedRes] = await Promise.all([
-        fetchWithOfflineCache("target-dictionary.json"),
-        fetchWithOfflineCache("allowed-guesses.txt"),
-      ]);
-      const dictData = await dictRes.json();
-      const allowedText = await allowedRes.text();
-      const valid = { 4: [], 5: [], 6: [] };
-      const answers = { 4: [], 5: [], 6: [] };
-      // Populate valid guesses from allowed-guesses.txt
-      allowedText.split("\n").forEach((line) => {
-        const word = line.trim().toUpperCase();
-        if (word && word.length >= 4 && word.length <= 6) {
-          valid[word.length].push(word);
-        }
-      });
-      // Populate target answers from target-dictionary.json
-      Object.keys(dictData).forEach((word) => {
-        const len = word.length;
-        if (answers[len]) {
-          answers[len].push(word.toUpperCase());
-        }
-      });
-      dictionary.value = dictData;
-      allowedGuesses.value = valid;
-      answerWords.value = answers;
-      await resetGame();
+      const latestDictionary = await loadDictionaryVersion(LATEST_DICT_VERSION);
+      applyDictionaryData(LATEST_DICT_VERSION, latestDictionary);
+      message.value = "";
+      if (startGame) {
+        await resetGame();
+      }
     } catch (error) {
       console.error("Failed to load dictionary:", error);
-      message.value = "Dictionary unavailable offline. Open Freedle once online to cache game data.";
+      if (error.message.startsWith("Dictionary version ")) {
+        message.value = error.message;
+      } else {
+        message.value = "Dictionary unavailable offline. Open Freedle once online to cache game data.";
+      }
     } finally {
       isLoading.value = false;
     }
@@ -332,6 +528,7 @@ export function useGame() {
 
   function handleWordLengthChange(len) {
     settingsStore.setWordLength(len);
+    activeWordLength.value = settingsStore.wordLength;
     resetGame(isDailyGame.value);
   }
 
@@ -441,15 +638,18 @@ export function useGame() {
               logGameWin({
                 word: targetWord.value,
                 guessCount: currentRow.value,
+                shared: isSharedGame.value,
               });
-              const newAchievements = statsStore.recordWin(
-                currentRow.value,
-                wordLength.value,
-                {
-                  hardMode: settingsStore.hardMode,
-                  countMode: settingsStore.countMode,
-                },
-              );
+              const newAchievements = isSharedGame.value
+                ? []
+                : statsStore.recordWin(
+                  currentRow.value,
+                  wordLength.value,
+                  {
+                    hardMode: settingsStore.hardMode,
+                    countMode: settingsStore.countMode,
+                  },
+                );
               if (newAchievements.length > 0 && onAchievements) {
                 onAchievements(newAchievements);
               }
@@ -458,8 +658,11 @@ export function useGame() {
               logGameLoss({
                 word: targetWord.value,
                 lastGuess: guessUpper,
+                shared: isSharedGame.value,
               });
-              const newAchievements = statsStore.recordLoss();
+              const newAchievements = isSharedGame.value
+                ? []
+                : statsStore.recordLoss();
               if (newAchievements.length > 0 && onAchievements) {
                 onAchievements(newAchievements);
               }
@@ -494,9 +697,16 @@ export function useGame() {
     message,
     shakingRow,
     keyStatuses,
+    activeWordLength,
     wordLength,
     gridStyle,
     isDailyGame,
+    isSharedGame,
+    currentDictionaryVersion,
+    currentRandomSeed,
+    currentDailyDate,
+    loadDictionaryVersion,
+    loadSharedGame,
 
     // Methods
     fetchDictionary,

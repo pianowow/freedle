@@ -1,6 +1,7 @@
 import fs from "fs";
 import path from "path";
 import { fileURLToPath } from "url";
+import { LATEST_DICT_VERSION } from "../src/constants/dictionary.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -11,13 +12,19 @@ const enTxtFile = path.join(dataDir, "en.txt");
 const commonWordsFile = path.join(dataDir, "common-words.txt");
 
 const outDir = path.join(__dirname, "../public/data");
-const allowedGuessesFile = path.join(outDir, "allowed-guesses.txt");
-const dictionaryJsonFile = path.join(outDir, "target-dictionary.json");
+const allowedGuessesFile = path.join(
+  outDir,
+  `allowed-guesses-v${LATEST_DICT_VERSION}.txt`,
+);
+const dictionaryJsonFile = path.join(
+  outDir,
+  `target-dictionary-v${LATEST_DICT_VERSION}.json`,
+);
 
 async function run() {
   try {
     // --- Task 1: allowed-words.txt ---
-    console.log("Generating allowed-guesses.txt...");
+    console.log(`Generating allowed-guesses-v${LATEST_DICT_VERSION}.txt...`);
     if (!fs.existsSync(enTxtFile)) {
       console.error(`Error: ${enTxtFile} not found.`);
       process.exit(1);
@@ -42,7 +49,9 @@ async function run() {
     );
 
     // --- Task 2: dictionary.json ---
-    console.log("Generating target-dictionary.json for common words...");
+    console.log(
+      `Generating target-dictionary-v${LATEST_DICT_VERSION}.json for common words...`,
+    );
     if (!fs.existsSync(commonWordsFile)) {
       console.error(`Error: ${commonWordsFile} not found.`);
       process.exit(1);

@@ -19,21 +19,29 @@
     </header>
 
     <main>
-      <div class="game-grid" :style="gridStyle">
-        <template v-for="(row, rowIndex) in 6" :key="rowIndex">
-          <div :class="['row', { shake: shakingRow === rowIndex }]">
-            <LetterTile
-              v-for="(col, colIndex) in wordLength"
-              :key="colIndex"
-              :letter="getLetter(rowIndex, colIndex)"
-              :color="getTileColor(rowIndex, colIndex)"
-              :delay="getTileDelay(rowIndex, colIndex)"
-              :count="getLetterCount(rowIndex, colIndex)"
-              :flip="shouldFlipTile(rowIndex)"
-              :is-current-row="rowIndex === currentRow"
-            />
-          </div>
-        </template>
+      <div class="board-stage">
+        <div v-if="isSharedGame" class="challenge-ribbon" aria-label="Challenge mode active">
+          <span class="challenge-ribbon-kicker">Challenge Mode</span>
+          <span class="challenge-ribbon-divider"></span>
+          <span class="challenge-ribbon-copy">Social game · stats disabled</span>
+        </div>
+
+        <div class="game-grid" :style="gridStyle">
+          <template v-for="(row, rowIndex) in 6" :key="rowIndex">
+            <div :class="['row', { shake: shakingRow === rowIndex }]">
+              <LetterTile
+                v-for="(col, colIndex) in wordLength"
+                :key="colIndex"
+                :letter="getLetter(rowIndex, colIndex)"
+                :color="getTileColor(rowIndex, colIndex)"
+                :delay="getTileDelay(rowIndex, colIndex)"
+                :count="getLetterCount(rowIndex, colIndex)"
+                :flip="shouldFlipTile(rowIndex)"
+                :is-current-row="rowIndex === currentRow"
+              />
+            </div>
+          </template>
+        </div>
       </div>
     </main>
 
@@ -80,9 +88,16 @@
             </div>
           </div>
 
-          <button @click="handleNewGameClick" class="new-game-btn">
-            New Game
-          </button>
+          <EndgameButtons
+            :guesses="guesses"
+            :target-word="targetWord"
+            :word-length="wordLength"
+            :is-daily-game="isDailyGame"
+            :current-dictionary-version="currentDictionaryVersion"
+            :current-random-seed="currentRandomSeed"
+            :current-daily-date="currentDailyDate"
+            @new-game="handleNewGameClick"
+          />
         </div>
       </div>
     </footer>
@@ -92,9 +107,19 @@
       :achievement="newAchievement || {}"
     />
 
-    <div v-if="isLoading" class="loading-overlay">
+    <BaseToast
+      :show="appToast.show"
+      :glow-color="appToast.glowColor"
+      position="top-fixed"
+    >
+      <template #icon>{{ appToast.icon }}</template>
+      <template #title>{{ appToast.title }}</template>
+      <template #message>{{ appToast.message }}</template>
+    </BaseToast>
+
+    <div v-if="isLoading || isHandlingShare" class="loading-overlay">
       <div class="loader"></div>
-      <p>Loading Dictionary...</p>
+      <p>{{ loadingMessage }}</p>
     </div>
 
     <!-- Modals -->
@@ -109,11 +134,12 @@
 </template>
 
 <script setup>
-import { ref, onMounted, onUnmounted } from "vue";
+import { computed, ref, onMounted, onUnmounted } from "vue";
 import LetterTile from "./components/LetterTile.vue";
 import VirtualKeyboard from "./components/VirtualKeyboard.vue";
 import { useRegisterSW } from "virtual:pwa-register/vue";
 import AchievementToast from "./components/AchievementToast.vue";
+import BaseToast from "./components/BaseToast.vue";
 import ValidationToast from "./components/ValidationToast.vue";
 import ReloadToast from "./components/ReloadToast.vue";
 import SettingsModal from "./components/SettingsModal.vue";
@@ -121,8 +147,11 @@ import StatsModal from "./components/StatsModal.vue";
 import SettingsIcon from "./components/SettingsIcon.vue";
 import StatisticsIcon from "./components/StatisticsIcon.vue";
 import DailyGameIcon from "./components/DailyGameIcon.vue";
+import EndgameButtons from "./components/EndgameButtons.vue";
+import { LATEST_DICT_VERSION } from "./constants/dictionary";
 import { useSettingsStore } from "./stores/settingsStore";
-import { useGame } from "./composables/useGame";
+import { resolveSharedChallengeWord, useGame } from "./composables/useGame";
+import { parseShareParams, verifyShare } from "./utils/shareLink";
 
 // PWA
 const { needRefresh, updateServiceWorker } = useRegisterSW();
@@ -134,6 +163,7 @@ const settingsStore = useSettingsStore();
 // Game composable
 const {
   isLoading,
+  guesses,
   currentRow,
   targetWord,
   targetMeanings,
@@ -144,7 +174,13 @@ const {
   wordLength,
   gridStyle,
   isDailyGame,
+  isSharedGame,
+  currentDictionaryVersion,
+  currentRandomSeed,
+  currentDailyDate,
   fetchDictionary,
+  loadDictionaryVersion,
+  loadSharedGame,
   resetGame,
   handleWordLengthChange,
   getLetter,
@@ -162,6 +198,20 @@ const currentDayOfMonth = ref(new Date().getDate());
 // Modal visibility
 const showSettingsModal = ref(false);
 const showStatsModal = ref(false);
+const isHandlingShare = ref(false);
+const loadingMessage = computed(() =>
+  isHandlingShare.value ? "Loading Challenge..." : "Loading Dictionary...",
+);
+
+const appToast = ref({
+  show: false,
+  title: "",
+  message: "",
+  icon: "🔗",
+  glowColor: "#446cc9",
+});
+
+let appToastTimerId = null;
 
 // Handle daily game button click
 function handleDailyGameClick() {
@@ -176,6 +226,97 @@ function handleDailyGameClick() {
 
 function handleNewGameClick() {
   resetGame();
+}
+
+function showAppToast({
+  title,
+  message,
+  icon = "🔗",
+  glowColor = "#446cc9",
+  duration = 3200,
+}) {
+  appToast.value = {
+    show: true,
+    title,
+    message,
+    icon,
+    glowColor,
+  };
+
+  if (appToastTimerId !== null) {
+    clearTimeout(appToastTimerId);
+  }
+
+  appToastTimerId = window.setTimeout(() => {
+    appToast.value = {
+      ...appToast.value,
+      show: false,
+    };
+    appToastTimerId = null;
+  }, duration);
+}
+
+function clearShareParamsFromAddressBar() {
+  window.history.replaceState(null, "", window.location.pathname);
+}
+
+async function resolveAndLoadSharedChallenge(shareData) {
+  if (shareData.version > LATEST_DICT_VERSION) {
+    showAppToast({
+      title: "Update Required",
+      message: "Update Freedle to play this challenge",
+      icon: "⬆️",
+      glowColor: "#d6932f",
+      duration: 3600,
+    });
+    return false;
+  }
+
+  try {
+    const dictionaryData = await loadDictionaryVersion(shareData.version);
+    const selectedWord = resolveSharedChallengeWord(shareData, dictionaryData);
+    const verified = selectedWord !== null &&
+      await verifyShare(shareData, selectedWord.word);
+
+    if (!verified) {
+      showAppToast({
+        title: "Invalid Challenge",
+        message: "This challenge link is invalid or from a modified dictionary",
+        icon: "⚠️",
+        glowColor: "#c94444",
+        duration: 3800,
+      });
+      return false;
+    }
+
+    await loadSharedGame({
+      shareData,
+      dictionaryData,
+      selectedWord,
+    });
+
+    return true;
+  } catch (error) {
+    console.error("Failed to open shared challenge", error);
+    showAppToast({
+      title: "Challenge Unavailable",
+      message: error?.message || "Could not open this challenge link.",
+      icon: "⚠️",
+      glowColor: "#c94444",
+      duration: 3800,
+    });
+    return false;
+  }
+}
+
+async function handleSharedChallenge(shareData) {
+  if (!shareData) {
+    return false;
+  }
+
+  const loaded = await resolveAndLoadSharedChallenge(shareData);
+  clearShareParamsFromAddressBar();
+  return loaded;
 }
 
 // Achievement notification
@@ -210,7 +351,9 @@ function onKeyClick(key) {
 
 function handlePhysicalKeyDown(event) {
   // Don't handle keyboard when modals are open
-  if (showSettingsModal.value || showStatsModal.value) return;
+  if (showSettingsModal.value || showStatsModal.value) {
+    return;
+  }
   if (event.ctrlKey || event.altKey || event.metaKey) return;
   let key = event.key;
   const isLetter = /^[a-zA-Z]$/.test(key);
@@ -249,7 +392,32 @@ onMounted(() => {
   window.addEventListener("keyup", handlePhysicalKeyUp);
   window.addEventListener("touchend", handlePhysicalKeyUp);
   document.addEventListener("visibilitychange", handleVisibilityChange);
-  fetchDictionary();
+
+  const boot = async () => {
+    const sharedChallenge = parseShareParams(
+      new URLSearchParams(window.location.search),
+    );
+
+    if (!sharedChallenge) {
+      await fetchDictionary();
+      return;
+    }
+
+    isHandlingShare.value = true;
+
+    try {
+      await fetchDictionary({ startGame: false });
+      const loaded = await handleSharedChallenge(sharedChallenge);
+
+      if (!loaded && !targetWord.value) {
+        await resetGame();
+      }
+    } finally {
+      isHandlingShare.value = false;
+    }
+  };
+
+  boot();
 });
 
 onUnmounted(() => {
@@ -257,6 +425,10 @@ onUnmounted(() => {
   window.removeEventListener("keyup", handlePhysicalKeyUp);
   window.removeEventListener("touchend", handlePhysicalKeyUp);
   document.removeEventListener("visibilitychange", handleVisibilityChange);
+
+  if (appToastTimerId !== null) {
+    clearTimeout(appToastTimerId);
+  }
 });
 </script>
 
@@ -367,6 +539,59 @@ main {
   justify-content: center;
   padding: 0 5px; /* Removed vertical padding */
   overflow: hidden;
+}
+
+.board-stage {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+}
+
+.challenge-ribbon {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  max-width: min(100%, 420px);
+  padding: 8px 14px;
+  border-radius: 999px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+    rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 12px 28px rgba(0, 0, 0, 0.22);
+  backdrop-filter: blur(8px);
+  animation: challengeFadeIn 0.35s ease-out;
+}
+
+.challenge-ribbon-kicker {
+  color: #9fd492;
+  font-size: 0.76rem;
+  font-weight: 800;
+  letter-spacing: 0.16rem;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.challenge-ribbon-divider {
+  width: 1px;
+  height: 16px;
+  background: linear-gradient(
+    180deg,
+    rgba(159, 212, 146, 0),
+    rgba(159, 212, 146, 0.65),
+    rgba(159, 212, 146, 0)
+  );
+}
+
+.challenge-ribbon-copy {
+  color: #c7cec8;
+  font-size: 0.84rem;
+  letter-spacing: 0.02rem;
+  white-space: nowrap;
 }
 
 .game-status-area {
@@ -534,26 +759,6 @@ main {
   color: #538d4e;
 }
 
-.new-game-btn {
-  background: linear-gradient(rgb(110, 169, 94), rgb(83, 125, 78));
-  color: white;
-  border: none;
-  padding: 10px 24px;
-  font-size: 1.5rem;
-  font-weight: bold;
-  border-radius: 8px;
-  cursor: pointer;
-  transition: all 0.2s;
-  margin: 4px;
-  flex-shrink: 0;
-  width: 100%;
-}
-
-.new-game-btn:hover {
-  background: linear-gradient(rgba(110, 169, 94, 0.8), rgba(83, 125, 78, 0.8));
-  transform: translateY(-1px);
-}
-
 .game-grid {
   display: flex;
   flex-direction: column;
@@ -615,6 +820,33 @@ footer.is-endgame {
   }
   100% {
     transform: rotate(360deg);
+  }
+}
+
+@keyframes challengeFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@media (max-width: 480px) {
+  .challenge-ribbon {
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .challenge-ribbon-kicker {
+    font-size: 0.69rem;
+    letter-spacing: 0.12rem;
+  }
+
+  .challenge-ribbon-copy {
+    font-size: 0.75rem;
   }
 }
 </style>
