@@ -30,13 +30,13 @@ Two query parameters are recognized: `d` (daily) and `r` (random). Each value is
 
 ### 3.1 Daily share
 
-```
+```text
 ?d=<base64url>
 ```
 
 Decoded payload:
 
-```
+```text
 <dictVersion>:<YYYY-MM-DD>:<length>:<wordHash>
 ```
 
@@ -44,13 +44,13 @@ Example payload (pre-encoding): `1:2026-04-28:5:ba587b1aac2552dc`
 
 ### 3.2 Random share
 
-```
+```text
 ?r=<base64url>
 ```
 
 Decoded payload:
 
-```
+```text
 <dictVersion>:<seed>:<length>:<wordHash>
 ```
 
@@ -190,7 +190,7 @@ The utility returns the share-text body only. The URL is appended by the Phase 4
 
 Format:
 
-```
+```text
 Freedle — 3 Guesses! ⭐
 🟩⬛🟨⬛⬛
 🟩🟩🟨⬛⬛
