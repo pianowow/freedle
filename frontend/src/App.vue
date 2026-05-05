@@ -278,7 +278,7 @@ async function resolveAndLoadSharedChallenge(shareData) {
     const verified = selectedWord !== null &&
       await verifyShare(shareData, selectedWord.word);
 
-    if (!verified || selectedWord === null) {
+    if (!verified) {
       showAppToast({
         title: "Invalid Challenge",
         message: "This challenge link is invalid or from a modified dictionary",
