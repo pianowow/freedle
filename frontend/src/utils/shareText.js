@@ -41,13 +41,11 @@ export async function buildShareText({
   currentRandomSeed,
 }) {
   const [resultGrid, shareUrl] = await Promise.all([
-    Promise.resolve(
-      buildResultGrid({
-        guesses,
-        target: targetWord,
-        wordLength,
-      }),
-    ),
+    buildResultGrid({
+      guesses,
+      target: targetWord,
+      wordLength,
+    }),
     buildShareUrlForGame({
       isDailyGame,
       currentDictionaryVersion,
