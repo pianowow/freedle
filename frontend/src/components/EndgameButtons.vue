@@ -55,7 +55,7 @@ const props = defineProps({
     default: "",
   },
   currentRandomSeed: {
-    type: Number,
+    type: [Number, null],
     default: null,
   },
 });
