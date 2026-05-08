@@ -84,14 +84,14 @@ This should be the single source of truth in `frontend/src/style.css`. Values be
 Notes:
 
 - The current green family is intentionally collapsed into a single "correct / positive action" family instead of keeping separate one-off greens for buttons, tiles, badges, glows, and cards.
-- The current neutral glass backgrounds should all come from the `surface` and `border` tokens instead of repeated white-alpha literals.
+- The current neutral glass backgrounds should all come from the `surface` and `border` vars instead of repeated white-alpha literals.
 - `--accent-glow-color` should be assigned inside component CSS from semantic variant classes such as `.base-toast--info`, not passed in from template or script code.
 
 ## Component Mapping
 
 | File | Replace hard-coded colors with |
 | --- | --- |
-| `frontend/src/style.css` | own all tokens above; remove `--green`, `--yellow`, `--absent`, `--border` |
+| `frontend/src/style.css` | own all variables above; remove `--green`, `--yellow`, `--absent`, `--border` |
 | `frontend/src/App.vue` | `--surface-header`, `--border-default`, `--text-title-gradient`, `--surface-card`, `--surface-card-hover`, `--surface-card-active`, `--surface-overlay-highlight`, `--surface-overlay-line`, `--border-strong`, `--state-correct`, `--state-correct-tint-soft`, `--text-secondary`, `--text-muted`, `--text-strong`, `--state-absent-border`; replace color-bearing toast config with semantic variants/classes |
 | `frontend/src/components/BaseModal.vue` | `--surface-scrim`, `--surface-panel`, `--surface-panel-raised`, `--border-default`, `--shadow-elevated`, `--surface-card-active`, `--text-secondary`, `--text-strong`, `--text-title-gradient`, `--state-correct` |
 | `frontend/src/components/BaseToast.vue` | `--surface-panel-strong`, `--surface-panel-raised`, `--text-strong`, `--text-secondary`, `--text-on-accent`, `--feedback-info`, `--feedback-warning`, `--feedback-error`, `--state-correct`; replace `glowColor` prop with semantic variant/class handling |
@@ -103,9 +103,9 @@ Notes:
 | `frontend/src/components/SettingsModal.vue` | `--surface-card`, `--surface-card-hover`, `--surface-card-active`, `--border-subtle`, `--border-default`, `--text-strong`, `--text-secondary`, `--state-correct-bright`, `--state-correct`, `--state-correct-tint-soft`, `--text-on-accent` |
 | `frontend/src/components/StatsModal.vue` | `--text-strong`, `--text-secondary`, `--text-muted`, `--state-correct`, `--surface-card`, `--surface-card-active`, `--border-subtle`, `--state-correct-gradient`, `--state-correct-tint-soft`, `--state-correct-tint-strong`, `--text-on-accent` |
 | `frontend/src/components/VirtualKeyboard.vue` | `--state-absent-gradient`, `--state-absent-gradient-hover`, `--state-correct-gradient`, `--state-correct-gradient-hover`, `--state-present-gradient`, `--state-present-gradient-hover`, `--action-destructive-gradient`, `--action-destructive-gradient-hover`, `--text-on-accent`, `--text-disabled` |
-| `frontend/src/components/LetterTile.vue` | `--text-on-accent`, `--state-absent-border`, `--state-correct-gradient`, `--state-present-gradient`, `--state-absent-gradient`, `--surface-scrim` or a dedicated badge token derived from it for the count badge |
+| `frontend/src/components/LetterTile.vue` | `--text-on-accent`, `--state-absent-border`, `--state-correct-gradient`, `--state-present-gradient`, `--state-absent-gradient`, `--surface-scrim` or a dedicated badge variable derived from it for the count badge |
 
-Components that already inherit `currentColor` correctly, such as `SettingsIcon.vue` and `StatisticsIcon.vue`, do not need their own palette tokens as long as the parent classes use the global variables above.
+Components that already inherit `currentColor` correctly, such as `SettingsIcon.vue` and `StatisticsIcon.vue`, do not need their own palette variables as long as the parent classes use the global variables above.
 
 ## Consolidation Rules
 
@@ -126,7 +126,7 @@ Components that already inherit `currentColor` correctly, such as `SettingsIcon.
 - Add a linting/checking layer before changing component styles so the cleanup has an objective pass/fail signal from the start.
 - Use CSS-aware linting for `.vue` `<style>` blocks and `frontend/src/style.css`, plus a small targeted check for script/template cases such as `glow-color="#..."`, `glowColor: "#..."`, `:style="{ color: ... }"`, and `:style="{ background: ... }"`.
 - Configure the enforcement so component styles may use only `var(--...)`, `currentColor`, and `transparent` for color-like values, while `frontend/src/style.css` remains the single allowed source of raw palette definitions.
-- Configure the enforcement so templates and scripts may not pass color literals or CSS variable strings; they must use semantic variants, modifier classes, or non-color attributes that CSS maps to tokens.
+- Configure the enforcement so templates and scripts may not pass color literals or CSS variable strings; they must use semantic variants, modifier classes, or non-color attributes that CSS maps to variables.
 - Treat the lint output as the work queue for the remaining phases: each phase should reduce the remaining violations until the frontend is clean.
 - Document the enforcement in `frontend/package.json` with both aggregate and specialized scripts.
 - Preferred script shape:
@@ -135,14 +135,14 @@ Components that already inherit `currentColor` correctly, such as `SettingsIcon.
 
 ### Phase 2: Establish global CSS variable contract
 
-- Add the semantic token list to `frontend/src/style.css`.
+- Add the semantic variables to `frontend/src/style.css`.
 - Move the current palette into `[data-theme="dark"]`.
 - Replace uses of the old root variables with the new semantic names.
 
 ### Phase 3: Update shared primitives
 
 - Refactor `BaseModal.vue` and `BaseToast.vue` first.
-- Replace color props such as `glowColor` with semantic variants or modifier classes, and let component CSS map those variants to the global tokens.
+- Replace color props such as `glowColor` with semantic variants or modifier classes, and let component CSS map those variants to the global variables.
 
 ### Phase 4: Update app shell and feature components
 
@@ -152,7 +152,7 @@ Components that already inherit `currentColor` correctly, such as `SettingsIcon.
 ### Phase 5: Update gameplay components
 
 - Refactor `LetterTile.vue` and `VirtualKeyboard.vue`.
-- Keep tile, keyboard, endgame button, and daily-button positive states visually aligned by sharing the same positive token family.
+- Keep tile, keyboard, endgame button, and daily-button positive states visually aligned by sharing the same positive variable family.
 
 ### Phase 6: Manual visual review workflow
 
