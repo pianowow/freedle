@@ -29,6 +29,7 @@ The issue comment also points at the intended structure:
 1. Put the global CSS variable contract in `frontend/src/style.css`.
 2. Move the current dark palette into a `[data-theme="dark"]` block.
 3. Set `document.documentElement.dataset.theme = "dark"` during app startup for the current behavior.
+   Hardcoded dark default is accepted in this issue; future work should define persisted user theme preference and precedence rules.
 4. Allow components to use only `var(--...)`, `currentColor`, or `transparent`.
 5. Prefer derived transparency from semantic variables instead of new one-off colors.
 6. Keep template and script layers color-agnostic: they may choose semantic classes, attributes, or variants, but not pass color values.
@@ -111,6 +112,7 @@ Requirements:
 Implementation constraints for the later feature:
 
 - Do not parse arbitrary component CSS to invent icon artwork. Read only the defined theme variables.
+- Parse `frontend/src/style.css` with `postcss` in the generator script, and read only variables defined in the `[data-theme="dark"]` token contract. Do not parse component styles.
 - Do not require a browser screenshot pipeline unless SVG generation proves insufficient. Direct SVG generation from CSS vars is the preferred default because it is deterministic and cheap.
 - Treat `meta[name="theme-color"]`, `manifest.json.theme_color`, and `manifest.json.background_color` as part of the same review surface as the icon assets.
 - Rounded corners are a structural part of the icon artwork and do not require their own theme variable in this plan.
@@ -161,13 +163,15 @@ Components that already inherit `currentColor` correctly, such as `SettingsIcon.
 ### Phase 1: Add enforcement before refactoring
 
 - Add a linting/checking layer before changing component styles so the cleanup has an objective pass/fail signal from the start.
+- Use `stylelint`, `stylelint-config-standard-vue`, and `stylelint-declaration-strict-value` for style enforcement in `.vue` `<style>` blocks and CSS files.
 - Use CSS-aware linting for `.vue` `<style>` blocks and `frontend/src/style.css`, plus a small targeted check for script/template cases such as `glow-color="#..."`, `glowColor: "#..."`, `:style="{ color: ... }"`, and `:style="{ background: ... }"`.
 - Configure the enforcement so component styles may use only `var(--...)`, `currentColor`, and `transparent` for color-like values, while `frontend/src/style.css` remains the single allowed source of raw palette definitions.
+- Enforce color-value discipline with `stylelint-declaration-strict-value`: disallow raw color literals in component styles and allow only semantic variables or approved keywords (`var(--...)`, `currentColor`, `transparent`).
 - Configure the enforcement so templates and scripts may not pass color literals or CSS variable strings; they must use semantic variants, modifier classes, or non-color attributes that CSS maps to variables.
 - Treat the lint output as the work queue for the remaining phases: each phase should reduce the remaining violations until the frontend is clean.
 - Document the enforcement in `frontend/package.json` with both aggregate and specialized scripts.
 - Preferred script shape:
-  `lint` runs the full frontend lint suite, while `lint:js`, `lint:style`, and `check:theme-colors` remain available as focused commands for local debugging and CI clarity.
+  `lint` runs the full frontend lint suite, while `lint:js`, `lint:style` (Stylelint), and `check:theme-colors` remain available as focused commands for local debugging and CI clarity.
 - This gives the repo both a simple single entry point and specialized jobs that can fail independently when needed.
 
 ### Phase 2: Establish global CSS variable contract
@@ -248,3 +252,4 @@ Components that already inherit `currentColor` correctly, such as `SettingsIcon.
 - Shared states look intentional and consistent across tiles, keyboard, buttons, badges, scrollbars, and notifications.
 - The plan explicitly covers favicon, Apple touch icon, and browser/app theme metadata as outputs of the same theme system, with documented generated assets and alignment requirements.
 - The plan explicitly treats icon generation as an on-demand script under `frontend/scripts/` that writes committed assets to `frontend/public/`, while the normal frontend build only consumes those assets.
+- Tech debt accepted in this issue: app startup hardcodes `data-theme="dark"`; persisted user theme preference and precedence are deferred.
