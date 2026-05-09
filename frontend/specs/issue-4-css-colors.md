@@ -15,12 +15,14 @@ The issue comment also points at the intended structure:
 - Normalize "close enough" values into shared families instead of keeping many slightly different greens, yellows, and neutrals.
 - Preserve the current dark visual design as the first themed palette.
 - Keep color decisions in CSS only; templates and scripts should choose semantic classes or variants instead of passing colors or CSS variables directly.
+- Make favicon, Apple touch icon, and browser/app theme metadata match the same visual system so those surfaces do not drift from the in-app theme.
 
 ## Non-Goals
 
 - Shipping a full light theme in the same change.
 - Restyling the app beyond CSS variable consolidation and small consistency fixes.
 - Changing the admin frontend.
+- Implementing the icon-generation pipeline in this planning pass. This document only defines the required scope and constraints for that later work.
 
 ## Theme Structure
 
@@ -30,6 +32,7 @@ The issue comment also points at the intended structure:
 4. Allow components to use only `var(--...)`, `currentColor`, or `transparent`.
 5. Prefer derived transparency from semantic variables instead of new one-off colors.
 6. Keep template and script layers color-agnostic: they may choose semantic classes, attributes, or variants, but not pass color values.
+7. Treat favicon/touch assets and manifest theme metadata as part of the same theme system, not as unrelated static files.
 
 ## Consolidated Global Token List
 
@@ -39,6 +42,7 @@ This should be the single source of truth in `frontend/src/style.css`. Values be
 | --- | --- | --- |
 | `--app-background` | `#0c0c0d` | page background, base dark surface |
 | `--app-background-gradient` | `radial-gradient(circle at center, #1a1a1c 0%, #0c0c0d 100%)` | body background |
+| `--app-chrome-theme` | `#0c0c0d` | browser UI theme color, manifest theme color, fallback solid for surfaces that cannot render gradients |
 | `--surface-header` | `rgb(18 18 19 / 0.9)` | header, loading overlay shell |
 | `--surface-scrim` | `rgb(0 0 0 / 0.75)` | modal backdrop |
 | `--surface-panel` | `#121213` | modal low end, elevated dark surface base |
@@ -86,6 +90,33 @@ Notes:
 - The current green family is intentionally collapsed into a single "correct / positive action" family instead of keeping separate one-off greens for buttons, tiles, badges, glows, and cards.
 - The current neutral glass backgrounds should all come from the `surface` and `border` vars instead of repeated white-alpha literals.
 - `--accent-glow-color` should be assigned inside component CSS from semantic variant classes such as `.base-toast--info`, not passed in from template or script code.
+- `--app-chrome-theme` exists because browser and manifest metadata expect a solid color even when the main app surface uses a gradient.
+
+## Theme-Managed Icon Assets
+
+The favicon and Apple touch icon should be treated as outputs of the theme system, not hand-maintained artwork that happens to live in `frontend/public/`.
+
+Requirements:
+
+- Keep a single source of truth for icon colors and gradients within the theme contract.
+- Generate icon assets from those variables through a dedicated checked-in script under `frontend/scripts/`; do not maintain unrelated raster artwork by hand.
+- Prefer a generated SVG source as the canonical icon artwork for modern browsers, then derive PNG sizes and `favicon.ico` from that source.
+- Keep `frontend/index.html` icon links, `frontend/public/manifest.json`, and the generated asset files aligned.
+- Use existing dark theme as generation inputs instead of defining icon-only colors: the icon background should come from `--state-correct-gradient`, and the foreground `F` should come from `--text-on-accent`.
+- The icon artwork should be a single capital `F` in white on the semantic success/correct gradient, using rounded corners as part of the icon shape.
+- The area outside those rounded corners should stay transparent rather than being filled with a page-background color.
+- Keep the generated icon simple and legible at `16x16`; do not depend on small text, fine detail, or subtle transparency alone.
+- The generation flow should write the committed outputs into `frontend/public/`, and the normal frontend build should consume those files without regenerating them.
+
+Implementation constraints for the later feature:
+
+- Do not parse arbitrary component CSS to invent icon artwork. Read only the defined theme variables.
+- Do not require a browser screenshot pipeline unless SVG generation proves insufficient. Direct SVG generation from CSS vars is the preferred default because it is deterministic and cheap.
+- Treat `meta[name="theme-color"]`, `manifest.json.theme_color`, and `manifest.json.background_color` as part of the same review surface as the icon assets.
+- Rounded corners are a structural part of the icon artwork and do not require their own theme variable in this plan.
+- Preserve alpha outside the rounded icon silhouette for formats that support transparency.
+- If tooling is added for asset generation, it must be documented in `frontend/package.json` scripts and fit the existing build workflow cleanly.
+- The generation script should be an explicit as-needed command, not a side effect of `vite build`, so normal builds do not rewrite tracked icon assets.
 
 ## Component Mapping
 
@@ -104,6 +135,11 @@ Notes:
 | `frontend/src/components/StatsModal.vue` | `--text-strong`, `--text-secondary`, `--text-muted`, `--state-correct`, `--surface-card`, `--surface-card-active`, `--border-subtle`, `--state-correct-gradient`, `--state-correct-tint-soft`, `--state-correct-tint-strong`, `--text-on-accent` |
 | `frontend/src/components/VirtualKeyboard.vue` | `--state-absent-gradient`, `--state-absent-gradient-hover`, `--state-correct-gradient`, `--state-correct-gradient-hover`, `--state-present-gradient`, `--state-present-gradient-hover`, `--action-destructive-gradient`, `--action-destructive-gradient-hover`, `--text-on-accent`, `--text-disabled` |
 | `frontend/src/components/LetterTile.vue` | `--text-on-accent`, `--state-absent-border`, `--state-correct-gradient`, `--state-present-gradient`, `--state-absent-gradient`, `--surface-scrim` or a dedicated badge variable derived from it for the count badge |
+| `frontend/index.html` | generated favicon references should stay aligned with the theme-managed asset set; `meta[name="theme-color"]` should use the semantic app chrome color |
+| `frontend/public/manifest.json` | `theme_color` and `background_color` should reflect the theme, and icon entries should match the generated asset set |
+| `frontend/public/favicon.svg`, `frontend/public/favicon.ico`, `frontend/public/favicon-32x32.png`, `frontend/public/favicon-16x16.png`, `frontend/public/apple-touch-icon.png` | treat as generated outputs from the shared icon design, not manually edited standalone assets |
+| `frontend/scripts/*` | host the explicit icon-generation script that reads the theme and writes committed outputs into `frontend/public/` |
+| `frontend/package.json` | document the explicit icon-generation script and keep it separate from the normal build command |
 
 Components that already inherit `currentColor` correctly, such as `SettingsIcon.vue` and `StatisticsIcon.vue`, do not need their own palette variables as long as the parent classes use the global variables above.
 
@@ -118,6 +154,7 @@ Components that already inherit `currentColor` correctly, such as `SettingsIcon.
    `--feedback-info`, `--feedback-warning`, `--feedback-error`, `--state-correct`.
 5. All text hierarchy comes from `--text-strong`, `--text-primary`, `--text-secondary`, `--text-muted`, and `--text-disabled`.
 6. Templates and scripts may select semantic state such as `info`, `warning`, `error`, `success`, `correct`, `present`, or `absent`, but they may not pass color literals or `var(--...)` strings.
+7. Browser-facing assets and metadata must come from the theme too: icon generation should reuse existing variables, and `theme-color`, manifest colors, and icon file references should stay in sync.
 
 ## Implementation Order
 
@@ -154,7 +191,18 @@ Components that already inherit `currentColor` correctly, such as `SettingsIcon.
 - Refactor `LetterTile.vue` and `VirtualKeyboard.vue`.
 - Keep tile, keyboard, endgame button, and daily-button positive states visually aligned by sharing the same positive variable family.
 
-### Phase 6: Manual visual review workflow
+### Phase 6: Specify theme-managed icon generation
+
+- Define the canonical icon design constraints while the palette refactor is still fresh, so the asset work does not become an unrelated follow-up with ad hoc colors.
+- Choose and document which existing variables drive icon background, foreground, and browser chrome metadata.
+- Lock the icon art direction before implementation: a single capital `F` in white, success-gradient background, rounded corners, and transparent outer corners.
+- Place the generator under `frontend/scripts/` and make it an explicit as-needed command rather than part of the default build pipeline.
+- Document the expected generated outputs: at minimum `favicon.svg`, `favicon.ico`, `favicon-32x32.png`, `favicon-16x16.png`, and `apple-touch-icon.png`.
+- Document the expected metadata alignment: `frontend/index.html` icon links, `meta[name="theme-color"]`, and `frontend/public/manifest.json` color fields and icon entries.
+- Prefer a script-driven SVG-first pipeline when implementation starts; raster files should be derivations of the same source artwork.
+- Keep the contract clear: the generator updates tracked files in `frontend/public/`, and `vite build` consumes those committed assets without modifying them.
+
+### Phase 7: Manual visual review workflow
 
 - Do this work on a dedicated branch, not directly on `main`.
 - Use a separate `git worktree` for `main` so the branch and baseline can run side by side without constant checkout switching.
@@ -179,14 +227,16 @@ Components that already inherit `currentColor` correctly, such as `SettingsIcon.
 - During development, compare the branch build side by side with `main` so visual drift is obvious while the refactor is still in progress.
 - Treat visible differences as intentional review items: each obvious change should be explicitly accepted as an improvement or adjusted to better match the current UI.
 - Focus the side-by-side comparison on the header, modals, toasts, keyboard, tiles, endgame layout, and stats screens.
+- Include favicon, Apple touch icon, installed-app icon surfaces, and browser theme color in that visual review once the asset work is implemented.
 - This manual review workflow is owned by the user during development; it is not part of the coding agent's implementation responsibility.
 
-### Phase 7: Verification
+### Phase 8: Verification
 
 - Run the lint/check enforcement from Phase 1 and treat zero violations as the main completion gate.
 - Run a frontend grep that finds remaining hard-coded palette values in `.vue` and `.css` files as a secondary backstop.
 - Confirm no component still references `#538d4e`, `#446cc9`, `#c94444`, raw white-alpha overlays, or the old root variable names.
 - Manually verify: header, modal, toast, keyboard, tile, endgame, and stats screens still match the current dark theme.
+- When the asset work is implemented, verify the generated icon set matches the documented outputs and that manifest/meta colors align with the theme variables.
 
 ## Acceptance Criteria
 
@@ -196,3 +246,5 @@ Components that already inherit `currentColor` correctly, such as `SettingsIcon.
 - The lint/check setup added in Phase 1 passes with zero violations for the frontend.
 - Variable names are semantic and functional, not hue-based.
 - Shared states look intentional and consistent across tiles, keyboard, buttons, badges, scrollbars, and notifications.
+- The plan explicitly covers favicon, Apple touch icon, and browser/app theme metadata as outputs of the same theme system, with documented generated assets and alignment requirements.
+- The plan explicitly treats icon generation as an on-demand script under `frontend/scripts/` that writes committed assets to `frontend/public/`, while the normal frontend build only consumes those assets.
