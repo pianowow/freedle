@@ -446,9 +446,9 @@ header {
   height: auto;
   min-height: 60px;
   padding: 8px 15px;
-  background: rgba(18, 18, 19, 0.9);
+  background: transparent;
   backdrop-filter: blur(10px);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-default);
   position: relative;
   z-index: 100;
 }
@@ -469,14 +469,14 @@ header {
   height: 2.5rem;
   display: inline-block;
   vertical-align: middle;
-  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+  filter: drop-shadow(0 2px 4px var(--surface-scrim));
 }
 
 .header-content h1 {
   font-weight: 800;
   text-transform: uppercase;
   letter-spacing: 0.15rem;
-  background: linear-gradient(to bottom, #ffffff 0%, #a0a0a0 100%);
+  background: var(--text-title-gradient);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -493,9 +493,9 @@ header {
 }
 
 .header-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #a0a0a0;
+  background: var(--surface-card-hover);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
   width: 44px;
   height: 44px;
   border-radius: 10px;
@@ -507,8 +507,8 @@ header {
 }
 
 .header-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: var(--surface-card-active);
+  color: var(--text-strong);
   transform: scale(1.05);
 }
 
@@ -556,19 +556,17 @@ main {
   max-width: min(100%, 420px);
   padding: 8px 14px;
   border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
-    rgba(255, 255, 255, 0.03);
-  border: 1px solid rgba(255, 255, 255, 0.14);
+  background: var(--surface-card);
+  border: 1px solid var(--border-strong);
   box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.06),
-    0 12px 28px rgba(0, 0, 0, 0.22);
+    inset 0 1px 0 var(--surface-overlay-line),
+    0 12px 28px var(--surface-scrim);
   backdrop-filter: blur(8px);
   animation: challengeFadeIn 0.35s ease-out;
 }
 
 .challenge-ribbon-kicker {
-  color: #9fd492;
+  color: var(--state-correct-bright);
   font-size: 0.76rem;
   font-weight: 800;
   letter-spacing: 0.16rem;
@@ -579,16 +577,11 @@ main {
 .challenge-ribbon-divider {
   width: 1px;
   height: 16px;
-  background: linear-gradient(
-    180deg,
-    rgba(159, 212, 146, 0),
-    rgba(159, 212, 146, 0.65),
-    rgba(159, 212, 146, 0)
-  );
+  background: var(--state-correct-bright);
 }
 
 .challenge-ribbon-copy {
-  color: #c7cec8;
+  color: var(--text-primary);
   font-size: 0.84rem;
   letter-spacing: 0.02rem;
   white-space: nowrap;
@@ -620,7 +613,7 @@ main {
   margin: 0;
   margin-top: 4px;
   font-size: 1.6rem;
-  color: #538d4e;
+  color: var(--state-correct);
   flex-shrink: 0;
 }
 
@@ -652,7 +645,7 @@ main {
 }
 
 .word-definition {
-  color: #818384;
+  color: var(--text-muted);
   font-style: italic;
   margin-bottom: 5px !important;
 }
@@ -690,13 +683,13 @@ main {
   min-height: 0;
   overflow-y: auto;
   padding: 10px;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-card-hover);
   border-radius: 10px;
   margin: 4px 0;
   text-align: left;
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid var(--border-default);
   scrollbar-width: thin;
-  scrollbar-color: #538d4e transparent;
+  scrollbar-color: var(--state-correct) transparent;
 }
 
 .meanings-container::-webkit-scrollbar {
@@ -704,12 +697,12 @@ main {
 }
 
 .meanings-container::-webkit-scrollbar-thumb {
-  background-color: #538d4e;
+  background-color: var(--state-correct);
   border-radius: 10px;
 }
 
 .meaning-item {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  border-bottom: 1px solid var(--border-default);
   padding-bottom: 8px;
 }
 
@@ -724,9 +717,9 @@ main {
 }
 
 .speech-part {
-  background: #538d4e;
+  background: var(--state-correct);
   height: 25px;
-  color: white;
+  color: var(--text-on-accent);
   font-size: 0.9rem;
   font-weight: bold;
   padding: 2px 6px;
@@ -738,25 +731,25 @@ main {
 .definition {
   margin: 4px 4px;
   font-size: 1.3rem;
-  color: #ffffff;
+  color: var(--text-strong);
 }
 
 .example {
   margin: 4px 0 !important;
   font-size: 1rem;
-  color: #a0a0a0;
+  color: var(--text-secondary);
   font-style: italic;
 }
 
 .synonyms {
   margin-top: 4px;
   font-size: 1rem;
-  color: #818384;
+  color: var(--text-muted);
 }
 
 .syn-label {
   font-weight: bold;
-  color: #538d4e;
+  color: var(--state-correct);
 }
 
 .game-grid {
@@ -796,7 +789,7 @@ footer.is-endgame {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(18, 18, 19, 0.9);
+  background: var(--app-background-gradient);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -805,8 +798,8 @@ footer.is-endgame {
 }
 
 .loader {
-  border: 4px solid #3a3a3c;
-  border-top: 4px solid #538d4e;
+  border: 4px solid var(--state-absent-border);
+  border-top: 4px solid var(--state-correct);
   border-radius: 50%;
   width: 40px;
   height: 40px;

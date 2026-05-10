@@ -26,8 +26,9 @@ defineEmits(["click"]);
 
 <style scoped>
 .daily-game-btn {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-card-hover);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
   width: 44px;
   height: 44px;
   border-radius: 10px;
@@ -41,7 +42,8 @@ defineEmits(["click"]);
 }
 
 .daily-game-btn:hover {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--surface-card-active);
+  color: var(--text-strong);
   transform: scale(1.05);
 }
 
@@ -58,27 +60,27 @@ defineEmits(["click"]);
   right: 7px;
   bottom: 8px;
   border: 2px solid;
-  border-color: #888;
+  border-color: var(--text-secondary);
   pointer-events: none;
 }
 
 .daily-game-btn:hover::before {
-  border-color: #fff;
+  border-color: var(--text-strong);
 }
 
 .daily-game-btn.active {
-  background: linear-gradient(135deg, #538d4e 0%, #3a6b35 100%);
-  border-color: #538d4e;
-  color: #fff;
-  box-shadow: 0 0 12px rgba(83, 141, 78, 0.4);
+  background: var(--state-correct-gradient);
+  border-color: var(--state-correct);
+  color: var(--text-on-accent);
+  box-shadow: 0 0 12px var(--state-correct-glow);
 }
 
 .daily-game-btn.active::before {
-  border-color: #fff;
+  border-color: var(--text-on-accent);
 }
 
 .daily-game-btn.active:hover {
-  background: linear-gradient(135deg, #5fa058 0%, #437d3d 100%);
+  background: var(--state-correct-gradient-hover);
 }
 
 .day-number {

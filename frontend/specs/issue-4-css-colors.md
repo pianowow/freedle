@@ -44,7 +44,6 @@ This should be the single source of truth in `frontend/src/style.css`. Values be
 | `--app-background` | `#0c0c0d` | page background, base dark surface |
 | `--app-background-gradient` | `radial-gradient(circle at center, #1a1a1c 0%, #0c0c0d 100%)` | body background |
 | `--app-chrome-theme` | `#0c0c0d` | browser UI theme color, manifest theme color, fallback solid for surfaces that cannot render gradients |
-| `--surface-header` | `rgb(18 18 19 / 0.9)` | header, loading overlay shell |
 | `--surface-scrim` | `rgb(0 0 0 / 0.75)` | modal backdrop |
 | `--surface-panel` | `#121213` | modal low end, elevated dark surface base |
 | `--surface-panel-raised` | `#1e1e1f` | modal high end, panel surfaces |
@@ -125,7 +124,7 @@ Implementation constraints for the later feature:
 | File | Replace hard-coded colors with |
 | --- | --- |
 | `frontend/src/style.css` | own all variables above; remove `--green`, `--yellow`, `--absent`, `--border` |
-| `frontend/src/App.vue` | `--surface-header`, `--border-default`, `--text-title-gradient`, `--surface-card`, `--surface-card-hover`, `--surface-card-active`, `--surface-overlay-highlight`, `--surface-overlay-line`, `--border-strong`, `--state-correct`, `--state-correct-tint-soft`, `--text-secondary`, `--text-muted`, `--text-strong`, `--state-absent-border`; replace color-bearing toast config with semantic variants/classes |
+| `frontend/src/App.vue` | `--app-background-gradient`, `--border-default`, `--text-title-gradient`, `--surface-card`, `--surface-card-hover`, `--surface-card-active`, `--surface-overlay-highlight`, `--surface-overlay-line`, `--border-strong`, `--state-correct`, `--state-correct-tint-soft`, `--text-secondary`, `--text-muted`, `--text-strong`, `--state-absent-border`; replace color-bearing toast config with semantic variants/classes |
 | `frontend/src/components/BaseModal.vue` | `--surface-scrim`, `--surface-panel`, `--surface-panel-raised`, `--border-default`, `--shadow-elevated`, `--surface-card-active`, `--text-secondary`, `--text-strong`, `--text-title-gradient`, `--state-correct` |
 | `frontend/src/components/BaseToast.vue` | `--surface-panel-strong`, `--surface-panel-raised`, `--text-strong`, `--text-secondary`, `--text-on-accent`, `--feedback-info`, `--feedback-warning`, `--feedback-error`, `--state-correct`; replace `glowColor` prop with semantic variant/class handling |
 | `frontend/src/components/AchievementToast.vue` | `--state-correct`; pass a semantic success variant/class only |
