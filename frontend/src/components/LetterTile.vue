@@ -46,8 +46,8 @@ defineProps({
   position: relative;
   width: 80px;
   height: 80px;
-  color: white;
-  border: 2px solid #3a3a3c;
+  color: var(--text-on-accent);
+  border: 2px solid var(--state-absent-border);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -66,18 +66,18 @@ defineProps({
 
 /* When not animating, show color immediately */
 .correct:not(.flip) {
-  border: 0px solid #0000;
-  background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
+  border: 0 solid transparent;
+  background: var(--state-correct-gradient);
 }
 
 .present:not(.flip) {
-  border: 0px solid #0000;
-  background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
+  border: 0 solid transparent;
+  background: var(--state-present-gradient);
 }
 
 .absent:not(.flip) {
-  border: 0px solid #0000;
-  background: linear-gradient(rgba(77, 77, 77, 1), rgba(38, 38, 38, 1));
+  border: 0 solid transparent;
+  background: var(--state-absent-gradient);
 }
 
 /* When animating, use flip animation which handles the color reveal */
@@ -114,22 +114,22 @@ defineProps({
   0% {
     transform: rotateX(0);
     background: transparent;
-    border-color: #3a3a3c;
+    border-color: var(--state-absent-border);
   }
   45% {
     transform: rotateX(90deg);
     background: transparent;
-    border-color: #3a3a3c;
+    border-color: var(--state-absent-border);
   }
   55% {
     transform: rotateX(90deg);
-    background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
-    border: 0px solid #0000;
+    background: var(--state-correct-gradient);
+    border: 0 solid transparent;
   }
   100% {
     transform: rotateX(0);
-    background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
-    border: 0px solid #0000;
+    background: var(--state-correct-gradient);
+    border: 0 solid transparent;
   }
 }
 
@@ -137,22 +137,22 @@ defineProps({
   0% {
     transform: rotateX(0);
     background: transparent;
-    border-color: #3a3a3c;
+    border-color: var(--state-absent-border);
   }
   45% {
     transform: rotateX(90deg);
     background: transparent;
-    border-color: #3a3a3c;
+    border-color: var(--state-absent-border);
   }
   55% {
     transform: rotateX(90deg);
-    background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
-    border: 0px solid #0000;
+    background: var(--state-present-gradient);
+    border: 0 solid transparent;
   }
   100% {
     transform: rotateX(0);
-    background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
-    border: 0px solid #0000;
+    background: var(--state-present-gradient);
+    border: 0 solid transparent;
   }
 }
 
@@ -160,22 +160,22 @@ defineProps({
   0% {
     transform: rotateX(0);
     background: transparent;
-    border-color: #3a3a3c;
+    border-color: var(--state-absent-border);
   }
   45% {
     transform: rotateX(90deg);
     background: transparent;
-    border-color: #3a3a3c;
+    border-color: var(--state-absent-border);
   }
   55% {
     transform: rotateX(90deg);
-    background: linear-gradient(rgba(77, 77, 77, 1), rgba(38, 38, 38, 1));
-    border: 0px solid #0000;
+    background: var(--state-absent-gradient);
+    border: 0 solid transparent;
   }
   100% {
     transform: rotateX(0);
-    background: linear-gradient(rgba(77, 77, 77, 1), rgba(38, 38, 38, 1));
-    border: 0px solid #0000;
+    background: var(--state-absent-gradient);
+    border: 0 solid transparent;
   }
 }
 
@@ -183,8 +183,8 @@ defineProps({
   position: absolute;
   bottom: 2px;
   right: 3px;
-  background: rgba(0, 0, 0, 0.5);
-  color: white;
+  background: var(--surface-scrim);
+  color: var(--text-on-accent);
   font-size: 0.7rem;
   font-weight: 700;
   width: 16px;
