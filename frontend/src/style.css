@@ -23,6 +23,8 @@
   --surface-panel: #121213;
   --surface-panel-raised: #1e1e1f;
   --surface-panel-strong: #2a2a2b;
+  --surface-modal-gradient: linear-gradient(145deg, #1e1e1f 0%, #121213 100%);
+  --surface-toast-gradient: linear-gradient(#2a2a2b 0%, #1e1e1f 100%);
   --surface-card: rgb(255 255 255 / 0.03);
   --surface-card-hover: rgb(255 255 255 / 0.05);
   --surface-card-active: rgb(255 255 255 / 0.1);

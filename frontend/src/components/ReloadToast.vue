@@ -1,5 +1,5 @@
 <template>
-  <BaseToast :show="show" glow-color="#446cc9" position="inline">
+  <BaseToast :show="show" variant="info" position="inline">
     <template #icon>🔄</template>
     <template #title>New Version Available!</template>
     <template #message>Click to reload.</template>

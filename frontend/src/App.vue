@@ -109,7 +109,7 @@
 
     <BaseToast
       :show="appToast.show"
-      :glow-color="appToast.glowColor"
+      :variant="appToast.variant"
       position="top-fixed"
     >
       <template #icon>{{ appToast.icon }}</template>
@@ -208,7 +208,7 @@ const appToast = ref({
   title: "",
   message: "",
   icon: "🔗",
-  glowColor: "#446cc9",
+  variant: "info",
 });
 
 let appToastTimerId = null;
@@ -232,7 +232,7 @@ function showAppToast({
   title,
   message,
   icon = "🔗",
-  glowColor = "#446cc9",
+  variant = "info",
   duration = 3200,
 }) {
   appToast.value = {
@@ -240,7 +240,7 @@ function showAppToast({
     title,
     message,
     icon,
-    glowColor,
+    variant,
   };
 
   if (appToastTimerId !== null) {
@@ -266,7 +266,7 @@ async function resolveAndLoadSharedChallenge(shareData) {
       title: "Update Required",
       message: "Update Freedle to play this challenge",
       icon: "⬆️",
-      glowColor: "#d6932f",
+      variant: "warning",
       duration: 3600,
     });
     return false;
@@ -283,7 +283,7 @@ async function resolveAndLoadSharedChallenge(shareData) {
         title: "Invalid Challenge",
         message: "This challenge link is invalid or from a modified dictionary",
         icon: "⚠️",
-        glowColor: "#c94444",
+        variant: "error",
         duration: 3800,
       });
       return false;
@@ -302,7 +302,7 @@ async function resolveAndLoadSharedChallenge(shareData) {
       title: "Challenge Unavailable",
       message: error?.message || "Could not open this challenge link.",
       icon: "⚠️",
-      glowColor: "#c94444",
+      variant: "error",
       duration: 3800,
     });
     return false;

@@ -16,7 +16,7 @@
       New Game
     </button>
 
-    <BaseToast :show="showToast" glow-color="#446cc9">
+    <BaseToast :show="showToast" variant="info">
       <template #icon>{{ toastIcon }}</template>
       <template #title>{{ toastTitle }}</template>
       <template #message>{{ toastMessage }}</template>
