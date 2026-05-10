@@ -19,8 +19,9 @@ export default defineConfig({
     vue(),
     VitePWA({
       registerType: 'prompt',
+      manifest: false,
       workbox: {
-        globPatterns: ['**/*.{js,css,html,ico,png,svg,txt,webmanifest}'],
+        globPatterns: ['**/*.{js,css,html,png,svg,txt,webmanifest}'],
         additionalManifestEntries: [
           { url: 'manifest.json', revision: null },
           { url: dictPath, revision: null },

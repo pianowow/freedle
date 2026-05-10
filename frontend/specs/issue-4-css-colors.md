@@ -100,7 +100,7 @@ Requirements:
 
 - Keep a single source of truth for icon colors and gradients within the theme contract.
 - Generate icon assets from those variables through a dedicated checked-in script under `frontend/scripts/`; do not maintain unrelated raster artwork by hand.
-- Prefer a generated SVG source as the canonical icon artwork for modern browsers, then derive PNG sizes and `favicon.ico` from that source.
+- Prefer a generated SVG source as the canonical icon artwork for modern browsers, then derive PNG sizes from that source with a Node-based generator.
 - Keep `frontend/index.html` icon links, `frontend/public/manifest.json`, and the generated asset files aligned.
 - Use existing dark theme as generation inputs instead of defining icon-only colors: the icon background should come from `--state-correct-gradient`, and the foreground `F` should come from `--text-on-accent`.
 - The icon artwork should be a single capital `F` in white on the semantic success/correct gradient, using rounded corners as part of the icon shape.
@@ -112,6 +112,7 @@ Implementation constraints for the later feature:
 
 - Do not parse arbitrary component CSS to invent icon artwork. Read only the defined theme variables.
 - Parse `frontend/src/style.css` with `postcss` in the generator script, and read only variables defined in the `[data-theme="dark"]` token contract. Do not parse component styles.
+- Use `sharp` from frontend dev dependencies to derive PNG assets from the canonical SVG; do not depend on system-level image tools such as ImageMagick.
 - Do not require a browser screenshot pipeline unless SVG generation proves insufficient. Direct SVG generation from CSS vars is the preferred default because it is deterministic and cheap.
 - Treat `meta[name="theme-color"]`, `manifest.json.theme_color`, and `manifest.json.background_color` as part of the same review surface as the icon assets.
 - Rounded corners are a structural part of the icon artwork and do not require their own theme variable in this plan.
@@ -138,7 +139,7 @@ Implementation constraints for the later feature:
 | `frontend/src/components/LetterTile.vue` | `--text-on-accent`, `--state-absent-border`, `--state-correct-gradient`, `--state-present-gradient`, `--state-absent-gradient`, `--surface-scrim` or a dedicated badge variable derived from it for the count badge |
 | `frontend/index.html` | generated favicon references should stay aligned with the theme-managed asset set; `meta[name="theme-color"]` should use the semantic app chrome color |
 | `frontend/public/manifest.json` | `theme_color` and `background_color` should reflect the theme, and icon entries should match the generated asset set |
-| `frontend/public/favicon.svg`, `frontend/public/favicon.ico`, `frontend/public/favicon-32x32.png`, `frontend/public/favicon-16x16.png`, `frontend/public/apple-touch-icon.png` | treat as generated outputs from the shared icon design, not manually edited standalone assets |
+| `frontend/public/favicon.svg`, `frontend/public/favicon-32x32.png`, `frontend/public/favicon-16x16.png`, `frontend/public/apple-touch-icon.png`, `frontend/public/icon-192x192.png`, `frontend/public/icon-512x512.png` | treat as generated outputs from the shared icon design, not manually edited standalone assets |
 | `frontend/scripts/*` | host the explicit icon-generation script that reads the theme and writes committed outputs into `frontend/public/` |
 | `frontend/package.json` | document the explicit icon-generation script and keep it separate from the normal build command |
 
@@ -200,7 +201,7 @@ Components that already inherit `currentColor` correctly, such as `SettingsIcon.
 - Choose and document which existing variables drive icon background, foreground, and browser chrome metadata.
 - Lock the icon art direction before implementation: a single capital `F` in white, success-gradient background, rounded corners, and transparent outer corners.
 - Place the generator under `frontend/scripts/` and make it an explicit as-needed command rather than part of the default build pipeline.
-- Document the expected generated outputs: at minimum `favicon.svg`, `favicon.ico`, `favicon-32x32.png`, `favicon-16x16.png`, and `apple-touch-icon.png`.
+- Document the expected generated outputs: at minimum `favicon.svg`, `favicon-32x32.png`, `favicon-16x16.png`, `apple-touch-icon.png`, `icon-192x192.png`, and `icon-512x512.png`.
 - Document the expected metadata alignment: `frontend/index.html` icon links, `meta[name="theme-color"]`, and `frontend/public/manifest.json` color fields and icon entries.
 - Prefer a script-driven SVG-first pipeline when implementation starts; raster files should be derivations of the same source artwork.
 - Keep the contract clear: the generator updates tracked files in `frontend/public/`, and `vite build` consumes those committed assets without modifying them.

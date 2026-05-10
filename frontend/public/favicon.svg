@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Freedle">
+  <defs>
+    <linearGradient id="freedle-icon-gradient" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="rgb(110, 169, 94)"/>
+      <stop offset="100%" stop-color="rgb(83, 125, 78)"/>
+    </linearGradient>
+  </defs>
+  <rect width="512" height="512" rx="96" fill="url(#freedle-icon-gradient)"/>
+  <path fill="#ffffff" d="M176 108 H364 V170 H246 V230 H364 V292 H246 V404 H176 Z"/>
+</svg>

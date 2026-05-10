@@ -11,7 +11,8 @@
     "lint": "node scripts/runFrontendLint.js",
     "lint:js": "eslint .",
     "lint:style": "stylelint \"src/**/*.{css,vue}\"",
-    "check:theme-colors": "node scripts/checkThemeColors.js"
+    "check:theme-colors": "node scripts/checkThemeColors.js",
+    "generate:icons": "node scripts/generateThemeIcons.js"
   },
   "dependencies": {
     "pinia": "^3.0.4",
@@ -25,6 +26,7 @@
     "eslint-plugin-vue": "^10.6.2",
     "globals": "^17.0.0",
     "jsdom": "^29.0.2",
+    "sharp": "^0.34.5",
     "stylelint": "^17.11.0",
     "stylelint-config-standard-vue": "^1.0.0",
     "stylelint-declaration-strict-value": "^1.11.1",
