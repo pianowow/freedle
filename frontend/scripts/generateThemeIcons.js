@@ -113,7 +113,7 @@ function updateManifest(tokens) {
     {
       src: "favicon.svg",
       type: "image/svg+xml",
-      sizes: "512x512",
+      sizes: "any",
       purpose: "any",
     },
     {
