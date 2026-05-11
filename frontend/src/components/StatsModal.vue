@@ -126,12 +126,12 @@ function getBarWidth(guessNum) {
 .stat-value {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-strong);
 }
 
 .stat-label {
   font-size: 0.75rem;
-  color: #818384;
+  color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.05em;
 }
@@ -142,14 +142,14 @@ function getBarWidth(guessNum) {
   font-size: 0.9rem;
   text-transform: uppercase;
   letter-spacing: 0.1em;
-  color: #a0a0a0;
+  color: var(--text-secondary);
   margin: 0 0 12px 0;
   font-weight: 600;
 }
 
 .achievement-count {
   font-weight: 400;
-  color: #538d4e;
+  color: var(--state-correct);
 }
 
 .distribution-chart {
@@ -167,7 +167,7 @@ function getBarWidth(guessNum) {
 .guess-num {
   width: 16px;
   font-weight: 700;
-  color: #a0a0a0;
+  color: var(--text-secondary);
   text-align: right;
 }
 
@@ -179,7 +179,7 @@ function getBarWidth(guessNum) {
 
 .bar {
   height: 100%;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--surface-card-active);
   border-radius: 4px;
   display: flex;
   align-items: center;
@@ -190,13 +190,13 @@ function getBarWidth(guessNum) {
 }
 
 .bar.has-value {
-  background: linear-gradient(135deg, #538d4e 0%, #60a15a 100%);
+  background: var(--state-correct-gradient);
 }
 
 .bar-value {
   font-size: 0.8rem;
   font-weight: 700;
-  color: white;
+  color: var(--text-on-accent);
 }
 
 /* Achievements Section */
@@ -214,7 +214,7 @@ function getBarWidth(guessNum) {
 }
 
 .achievements-grid::-webkit-scrollbar-thumb {
-  background-color: #538d4e;
+  background-color: var(--state-correct);
   border-radius: 10px;
 }
 
@@ -223,15 +223,15 @@ function getBarWidth(guessNum) {
   align-items: center;
   gap: 12px;
   padding: 10px 12px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-card);
   border-radius: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-subtle);
   transition: all 0.2s ease;
 }
 
 .achievement-item.unlocked {
-  background: rgba(83, 141, 78, 0.1);
-  border-color: rgba(83, 141, 78, 0.2);
+  background: var(--state-correct-tint-soft);
+  border-color: var(--state-correct-tint-strong);
 }
 
 .achievement-item:not(.unlocked) {
@@ -245,12 +245,12 @@ function getBarWidth(guessNum) {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.05);
+  background: var(--surface-card-hover);
   border-radius: 8px;
 }
 
 .achievement-item.unlocked .achievement-icon {
-  background: rgba(83, 141, 78, 0.2);
+  background: var(--state-correct-tint-strong);
 }
 
 .achievement-info {
@@ -264,16 +264,16 @@ function getBarWidth(guessNum) {
 .achievement-name {
   font-weight: 600;
   font-size: 0.9rem;
-  color: #ffffff;
+  color: var(--text-strong);
 }
 
 .achievement-item:not(.unlocked) .achievement-name {
-  color: #818384;
+  color: var(--text-muted);
 }
 
 .achievement-desc {
   font-size: 0.8rem;
-  color: #818384;
+  color: var(--text-muted);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;

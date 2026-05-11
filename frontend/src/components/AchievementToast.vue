@@ -1,5 +1,5 @@
 <template>
-  <BaseToast :show="show" glow-color="#538d4e">
+  <BaseToast :show="show" variant="success">
     <template #icon>{{ achievement.icon }}</template>
     <template #title>Achievement Unlocked!</template>
     <template #message>{{ achievement.name }}</template>

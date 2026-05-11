@@ -113,9 +113,9 @@ function handleHardModeChange(event) {
   justify-content: space-between;
   align-items: center;
   padding: 16px;
-  background: rgba(255, 255, 255, 0.03);
+  background: var(--surface-card);
   border-radius: 12px;
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid var(--border-subtle);
 }
 
 .setting-group.disabled {
@@ -132,7 +132,7 @@ function handleHardModeChange(event) {
 .setting-title {
   font-weight: 600;
   font-size: 1rem;
-  color: #ffffff;
+  color: var(--text-strong);
   display: flex;
   align-items: center;
   gap: 8px;
@@ -140,12 +140,12 @@ function handleHardModeChange(event) {
 
 .setting-description {
   font-size: 0.85rem;
-  color: #818384;
+  color: var(--text-muted);
 }
 
 .coming-soon-badge {
-  background: linear-gradient(135deg, #538d4e 0%, #60a15a 100%);
-  color: white;
+  background: var(--state-correct-gradient);
+  color: var(--text-on-accent);
   font-size: 0.65rem;
   padding: 2px 6px;
   border-radius: 4px;
@@ -159,9 +159,9 @@ function handleHardModeChange(event) {
 }
 
 .word-length-selector button {
-  background: rgba(255, 255, 255, 0.05);
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  color: #a0a0a0;
+  background: var(--surface-card-hover);
+  border: 1px solid var(--border-default);
+  color: var(--text-secondary);
   padding: 10px 18px;
   border-radius: 10px;
   cursor: pointer;
@@ -171,15 +171,15 @@ function handleHardModeChange(event) {
 }
 
 .word-length-selector button:hover {
-  background: rgba(255, 255, 255, 0.1);
-  color: #ffffff;
+  background: var(--surface-card-active);
+  color: var(--text-strong);
 }
 
 .word-length-selector button.active {
-  background: linear-gradient(135deg, #538d4e 0%, #60a15a 100%);
-  border-color: #538d4e;
-  color: white;
-  box-shadow: 0 4px 15px rgba(83, 141, 78, 0.3);
+  background: var(--state-correct-gradient);
+  border-color: var(--state-correct);
+  color: var(--text-on-accent);
+  box-shadow: 0 4px 15px var(--state-correct-tint-strong);
   transform: scale(1.05);
 }
 
@@ -203,7 +203,7 @@ function handleHardModeChange(event) {
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(255, 255, 255, 0.1);
+  background-color: var(--surface-card-active);
   border-radius: 28px;
   transition: 0.3s;
 }
@@ -215,17 +215,17 @@ function handleHardModeChange(event) {
   width: 22px;
   left: 3px;
   bottom: 3px;
-  background-color: #a0a0a0;
+  background-color: var(--text-secondary);
   border-radius: 50%;
   transition: 0.3s;
 }
 
 .toggle-switch input:checked + label {
-  background: linear-gradient(135deg, #538d4e 0%, #60a15a 100%);
+  background: var(--state-correct-gradient);
 }
 
 .toggle-switch input:checked + label::before {
   transform: translateX(22px);
-  background-color: white;
+  background-color: var(--text-on-accent);
 }
 </style>

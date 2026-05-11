@@ -84,7 +84,7 @@ onUnmounted(() => {
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.75);
+  background: var(--surface-scrim);
   backdrop-filter: blur(4px);
   display: flex;
   align-items: center;
@@ -94,24 +94,24 @@ onUnmounted(() => {
 }
 
 .modal-container {
-  background: linear-gradient(145deg, #1e1e1f 0%, #121213 100%);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: var(--surface-modal-gradient);
+  border: 1px solid var(--border-default);
   border-radius: 16px;
   width: 100%;
   max-width: 420px;
   max-height: 90vh;
   overflow-y: auto;
   position: relative;
-  box-shadow: 0 25px 50px rgba(0, 0, 0, 0.5);
+  box-shadow: var(--shadow-elevated);
 }
 
 .modal-close {
   position: absolute;
   top: 12px;
   right: 12px;
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--surface-card-active);
   border: none;
-  color: #a0a0a0;
+  color: var(--text-secondary);
   width: 32px;
   height: 32px;
   border-radius: 8px;
@@ -125,8 +125,8 @@ onUnmounted(() => {
 }
 
 .modal-close:hover {
-  background: rgba(255, 255, 255, 0.2);
-  color: #ffffff;
+  background: var(--surface-card-active);
+  color: var(--text-strong);
 }
 
 .modal-header {
@@ -140,7 +140,7 @@ onUnmounted(() => {
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.1rem;
-  background: linear-gradient(to bottom, #ffffff 0%, #a0a0a0 100%);
+  background: var(--text-title-gradient);
   -webkit-background-clip: text;
   background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -182,7 +182,7 @@ onUnmounted(() => {
 }
 
 .modal-container::-webkit-scrollbar-thumb {
-  background-color: #538d4e;
+  background-color: var(--state-correct);
   border-radius: 10px;
 }
 </style>

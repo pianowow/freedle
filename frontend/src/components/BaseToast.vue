@@ -1,6 +1,6 @@
 <template>
   <Transition :name="transitionName">
-    <div v-if="show" :class="['base-toast', positionClass]" :style="toastStyle">
+    <div v-if="show" :class="['base-toast', positionClass, variantClass]">
       <div class="toast-icon">
         <slot name="icon"></slot>
       </div>
@@ -31,35 +31,51 @@ const props = defineProps({
     type: Boolean,
     default: false,
   },
-  glowColor: {
+  variant: {
     type: String,
-    default: "#538d4e", // Default to green
+    default: "success",
+    validator: (value) => ["success", "info", "warning", "error"].includes(value),
   },
 });
 
 const positionClass = computed(() => `toast-position-${props.position}`);
+const variantClass = computed(() => `base-toast-${props.variant}`);
 
 const transitionName = computed(() => {
   return props.position === "inline" ? "toast-pop-inline" : "toast-pop-fixed";
 });
-
-const toastStyle = computed(() => ({
-  "--glow-color": props.glowColor,
-}));
 </script>
 
 <style>
 .base-toast {
-  background: linear-gradient(#2a2a2b 0%, #1e1e1f 100%);
-  border: 2px solid var(--glow-color);
+  --accent-glow-color: var(--state-correct);
+
+  background: var(--surface-toast-gradient);
+  border: 2px solid var(--accent-glow-color);
   border-radius: 16px;
   padding: 12px 20px;
   display: flex;
   align-items: center;
   gap: 12px;
-  box-shadow: 0 10px 40px rgba(from var(--glow-color) r g b / 0.3);
+  box-shadow: var(--shadow-glow-soft);
   z-index: 2000;
   min-width: 280px;
+}
+
+.base-toast-success {
+  --accent-glow-color: var(--state-correct);
+}
+
+.base-toast-info {
+  --accent-glow-color: var(--feedback-info);
+}
+
+.base-toast-warning {
+  --accent-glow-color: var(--feedback-warning);
+}
+
+.base-toast-error {
+  --accent-glow-color: var(--feedback-error);
 }
 
 .toast-position-top-fixed {
@@ -91,17 +107,17 @@ const toastStyle = computed(() => ({
 .toast-title {
   font-size: 1rem;
   font-weight: 700;
-  color: #ffffff;
+  color: var(--text-strong);
 }
 
 .toast-message {
   font-size: 0.9rem;
-  color: #a0a0a0;
+  color: var(--text-secondary);
 }
 
 .toast-actions button {
-  background: var(--glow-color);
-  color: white;
+  background: var(--accent-glow-color);
+  color: var(--text-on-accent);
   border: none;
   border-radius: 4px;
   padding: 6px 12px;

@@ -4,14 +4,15 @@
   "description": "A free open source Wordle-like game.",
   "start_url": ".",
   "display": "standalone",
-  "background_color": "#ffffff",
-  "theme_color": "#000000",
+  "background_color": "#0c0c0d",
+  "theme_color": "#0c0c0d",
   "orientation": "portrait",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "64x64 32x32 24x24 16x16",
-      "type": "image/x-icon"
+      "src": "favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
+      "purpose": "any"
     },
     {
       "src": "apple-touch-icon.png",
@@ -19,14 +20,14 @@
       "sizes": "180x180"
     },
     {
-      "src": "favicon-16x16.png",
+      "src": "icon-192x192.png",
       "type": "image/png",
-      "sizes": "16x16"
+      "sizes": "192x192"
     },
     {
-      "src": "favicon-32x32.png",
+      "src": "icon-512x512.png",
       "type": "image/png",
-      "sizes": "32x32"
+      "sizes": "512x512"
     }
   ]
 }

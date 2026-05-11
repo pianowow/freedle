@@ -75,10 +75,10 @@ const handleKeyClick = (key) => {
 }
 
 .key {
-  background: linear-gradient(rgba(77, 77, 77, 1), rgba(38, 38, 38, 1));
+  background: var(--state-absent-gradient);
   backdrop-filter: blur(5px);
-  color: white;
-  border: 0px solid #0000;
+  color: var(--text-on-accent);
+  border: 0 solid transparent;
   border-radius: 6px;
   padding: 0;
   height: 58px;
@@ -103,43 +103,37 @@ const handleKeyClick = (key) => {
 
 @media (hover: hover) {
   .key:hover:not(.absent) {
-    background: linear-gradient(rgba(77, 77, 77, 0.8), rgba(38, 38, 38, 0.8));
+    background: var(--state-absent-gradient-hover);
   }
 
   .key.correct:hover {
-    background: linear-gradient(rgba(104, 161, 90, 0.8), rgba(83, 125, 78, 0.8));
+    background: var(--state-correct-gradient-hover);
   }
 
   .key.present:hover {
-    background: linear-gradient(rgba(217, 206, 85, 0.8), rgba(128, 124, 3, 0.8));
+    background: var(--state-present-gradient-hover);
   }
 
   .key.backspace-key:hover {
-    background: linear-gradient(
-      rgba(156, 32, 32, 0.8),
-      rgba(105, 18, 18, 0.8)
-    );
+    background: var(--action-destructive-gradient-hover);
   }
 
   .key.enter-key:hover {
-    background: linear-gradient(
-      rgba(110, 169, 94, 0.8),
-      rgba(83, 125, 78, 0.8)
-    );
+    background: var(--state-correct-gradient-hover);
   }
 }
 
 .key.correct {
-  background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
+  background: var(--state-correct-gradient);
 }
 
 .key.present {
-  background: linear-gradient(rgb(217, 206, 85), rgb(128, 124, 3));
+  background: var(--state-present-gradient);
 }
 
 .key.absent {
   background: transparent;
-  color: rgba(255, 255, 255, 0.2);
+  color: var(--text-disabled);
   opacity: 0.5;
   cursor: default;
 }
@@ -148,13 +142,13 @@ const handleKeyClick = (key) => {
   min-width: 58px;
   max-width: 75px;
   font-size: 2rem;
-  background: linear-gradient(rgba(156, 32, 32, 1), rgba(105, 18, 18, 1));
+  background: var(--action-destructive-gradient);
 }
 
 .key.enter-key {
   min-width: 200px;
   max-width: 300px;
-  background: linear-gradient(rgba(110, 169, 94, 1), rgba(83, 125, 78, 1));
+  background: var(--state-correct-gradient);
 }
 
 .key:active,

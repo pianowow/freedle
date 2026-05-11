@@ -16,7 +16,7 @@
       New Game
     </button>
 
-    <BaseToast :show="showToast" glow-color="#446cc9">
+    <BaseToast :show="showToast" variant="info">
       <template #icon>{{ toastIcon }}</template>
       <template #title>{{ toastTitle }}</template>
       <template #message>{{ toastMessage }}</template>
@@ -156,8 +156,8 @@ onUnmounted(() => {
 
 .endgame-action-btn {
   height: 56px;
-  background: linear-gradient(rgb(110, 169, 94), rgb(83, 125, 78));
-  color: white;
+  background: var(--state-correct-gradient);
+  color: var(--text-on-accent);
   border: none;
   font-weight: bold;
   border-radius: 8px;
@@ -166,7 +166,7 @@ onUnmounted(() => {
 }
 
 .endgame-action-btn:hover:not(:disabled) {
-  background: linear-gradient(rgba(110, 169, 94, 0.8), rgba(83, 125, 78, 0.8));
+  background: var(--state-correct-gradient-hover);
 }
 
 .share-btn {
