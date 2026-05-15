@@ -52,6 +52,9 @@ jobs:
       - name: Build project
         run: npm run build
 
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
+
       - name: Upload dist artifact
         # This conditional ensures only the main branch builds are saved for deployment
         if: github.event_name == 'push' && github.ref == 'refs/heads/main'
