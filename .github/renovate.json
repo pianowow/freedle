@@ -1,0 +1,49 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": ["config:recommended"],
+  "description": "Keep Freedle dependencies moving in small, reviewable updates.",
+  "timezone": "America/New_York",
+  "schedule": ["* 16-19 * * 5"],
+  "dependencyDashboard": true,
+  "labels": ["dependencies"],
+  "automerge": false,
+  "prHourlyLimit": 2,
+  "prConcurrentLimit": 5,
+  "enabledManagers": ["npm", "github-actions"],
+  "packageRules": [
+    {
+      "description": "Keep frontend npm updates in frontend-scoped PRs.",
+      "matchManagers": ["npm"],
+      "matchFileNames": ["frontend/package.json", "frontend/package-lock.json"],
+      "additionalBranchPrefix": "frontend-",
+      "semanticCommitScope": "frontend",
+      "addLabels": ["frontend"]
+    },
+    {
+      "description": "Keep admin frontend npm updates in admin-frontend-scoped PRs.",
+      "matchManagers": ["npm"],
+      "matchFileNames": [
+        "admin-frontend/package.json",
+        "admin-frontend/package-lock.json"
+      ],
+      "additionalBranchPrefix": "admin-frontend-",
+      "semanticCommitScope": "admin-frontend",
+      "addLabels": ["admin-frontend"]
+    },
+    {
+      "description": "Keep backend npm updates in backend-scoped PRs.",
+      "matchManagers": ["npm"],
+      "matchFileNames": ["backend/package.json", "backend/package-lock.json"],
+      "additionalBranchPrefix": "backend-",
+      "semanticCommitScope": "backend",
+      "addLabels": ["backend"]
+    },
+    {
+      "description": "Keep GitHub Actions updates separate from application dependencies.",
+      "matchManagers": ["github-actions"],
+      "additionalBranchPrefix": "github-actions-",
+      "semanticCommitScope": "github-actions",
+      "addLabels": ["github-actions"]
+    }
+  ]
+}
