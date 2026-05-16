@@ -44,6 +44,13 @@
       "additionalBranchPrefix": "github-actions-",
       "semanticCommitScope": "github-actions",
       "addLabels": ["github-actions"]
+    },
+    {
+      "description": "Keep routine Node updates on the exact project-pinned version.",
+      "matchManagers": ["github-actions"],
+      "matchDepNames": ["node"],
+      "allowedVersions": "22.22.2",
+      "addLabels": ["node"]
     }
   ]
 }
