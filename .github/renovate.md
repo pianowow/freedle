@@ -53,15 +53,21 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      RENOVATE_ONBOARDING: "false"
+      RENOVATE_REPOSITORIES: ${{ github.repository }}
+      RENOVATE_REQUIRE_CONFIG: optional
     steps:
       - uses: actions/checkout@v4
-      - uses: renovatebot/github-action@v43.0.0
+      - uses: renovatebot/github-action@v46.1.4
         with:
           configurationFile: .github/renovate.json
           token: ${{ secrets.RENOVATE_TOKEN }}
 ```
 
 The example cron runs on Fridays at 21:00 UTC, which is 5 PM America/New_York during daylight saving time and 4 PM during standard time. GitHub Actions cron uses UTC, so daylight saving time can shift a UTC cron relative to local time; the Renovate config timezone and schedule remain the local-time guardrail.
+
+The `RENOVATE_REPOSITORIES` value tells self-hosted Renovate which repository to process. Without it, Renovate can start successfully but exit without opening PRs because no repository was selected. `RENOVATE_ONBOARDING=false` and `RENOVATE_REQUIRE_CONFIG=optional` make this single-repository workflow use the checked-in config directly instead of trying to create an onboarding PR.
 
 Security notes:
 
