@@ -10,6 +10,10 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read
+    env:
+      RENOVATE_ONBOARDING: "false"
+      RENOVATE_REPOSITORIES: ${{ github.repository }}
+      RENOVATE_REQUIRE_CONFIG: optional
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
