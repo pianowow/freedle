@@ -1,0 +1,77 @@
+name: Deploy GitHub Pages
+
+on:
+  # Publish a GitHub Release backed by a semver-style tag, such as v1.2.3,
+  # when a frontend build should become the live GitHub Pages site.
+  release:
+    types: [published]
+  workflow_dispatch:
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: frontend
+
+    permissions:
+      contents: read
+      pages: write
+      id-token: write
+
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        id: lint
+        continue-on-error: true
+        run: npm run lint
+
+      - name: Report lint failure
+        if: steps.lint.outcome == 'failure'
+        run: |
+          echo "::warning::Frontend lint failed, but deployment is continuing to match the existing CI policy."
+          echo "## Frontend lint failed" >> "$GITHUB_STEP_SUMMARY"
+          echo "" >> "$GITHUB_STEP_SUMMARY"
+          echo "Lint issues did not block this deployment. Check the **Run lint** step logs for details." >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Run unit tests
+        run: npm test
+
+      - name: Build project
+        run: npm run build
+
+      - name: Audit production dependencies
+        run: npm audit --omit=dev
+
+      - name: Setup GitHub Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload build artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: "./frontend/dist"
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

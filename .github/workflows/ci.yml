@@ -1,12 +1,14 @@
-# .github/workflows/ci.yml
-name: Build, Test, and Sometimes Deploy
+name: Build and Test
 
 on:
+  # pull_request CI is intentionally disabled for now. This keeps Actions usage
+  # focused on branch pushes until the project is ready for PR validation.
   push:
     paths:
       - "frontend/**"
       - ".gitattributes"
       - ".github/workflows/ci.yml"
+      - ".github/workflows/deploy-pages.yml"
 
 jobs:
   test-and-build:
@@ -41,7 +43,7 @@ jobs:
       - name: Report lint failure
         if: steps.lint.outcome == 'failure'
         run: |
-          echo "::warning::Frontend lint failed, but CI is continuing so tests and deploy can proceed."
+          echo "::warning::Frontend lint failed, but CI is continuing so tests and build can proceed."
           echo "## Frontend lint failed" >> "$GITHUB_STEP_SUMMARY"
           echo "" >> "$GITHUB_STEP_SUMMARY"
           echo "Lint issues did not block this run. Check the **Run lint** step logs for details." >> "$GITHUB_STEP_SUMMARY"
@@ -54,45 +56,3 @@ jobs:
 
       - name: Audit production dependencies
         run: npm audit --omit=dev
-
-      - name: Upload dist artifact
-        # This conditional ensures only the main branch builds are saved for deployment
-        if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-        uses: actions/upload-artifact@v4
-        with:
-          name: frontend-dist
-          path: "./frontend/dist"
-
-  deploy:
-    runs-on: ubuntu-latest
-    needs: test-and-build
-    # Strict conditional to ensure deployment ONLY happens on pushes to main
-    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
-
-    defaults:
-      run:
-        working-directory: frontend
-
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
-
-    steps:
-      - name: Setup GitHub Pages
-        uses: actions/configure-pages@v5
-
-      - name: Download dist artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: frontend-dist
-          path: "./frontend/dist"
-
-      - name: Upload build artifact
-        uses: actions/upload-pages-artifact@v3
-        with:
-          path: "./frontend/dist" # The directory containing your build output
-
-      - name: Deploy to GitHub Pages
-        id: deployment
-        uses: actions/deploy-pages@v4
