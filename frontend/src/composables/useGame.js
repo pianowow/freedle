@@ -489,7 +489,9 @@ export function useGame() {
         };
       } catch (error) {
         if (error?.status === 404) {
-          throw new Error(`Dictionary version ${version} is unavailable.`);
+          throw new Error(`Dictionary version ${version} is unavailable.`, {
+            cause: error,
+          });
         }
         throw error;
       }
