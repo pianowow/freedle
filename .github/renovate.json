@@ -51,6 +51,13 @@
       "matchDepNames": ["node"],
       "allowedVersions": "22.22.2",
       "addLabels": ["node"]
+    },
+    {
+      "description": "Do not manage pinned Node/npm toolchain declarations in package metadata.",
+      "matchManagers": ["npm"],
+      "matchDepNames": ["node", "npm"],
+      "matchDepTypes": ["engines", "packageManager"],
+      "enabled": false
     }
   ]
 }
