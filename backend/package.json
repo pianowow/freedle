@@ -6,7 +6,7 @@
   "main": "src/index.js",
   "packageManager": "npm@10.9.7",
   "engines": {
-    "node": "22.22.2",
+    "node": "22.22.3",
     "npm": "10.9.7"
   },
   "scripts": {
