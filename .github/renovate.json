@@ -3,12 +3,12 @@
   "extends": ["config:recommended"],
   "description": "Keep Freedle dependencies moving in small, reviewable updates.",
   "timezone": "America/New_York",
-  "schedule": ["* 16-19 * * 5"],
+  "schedule": ["at any time"],
   "dependencyDashboard": true,
   "labels": ["dependencies"],
   "automerge": false,
-  "prHourlyLimit": 2,
-  "prConcurrentLimit": 5,
+  "prHourlyLimit": 0,
+  "prConcurrentLimit": 0,
   "enabledManagers": ["npm", "github-actions"],
   "packageRules": [
     {
