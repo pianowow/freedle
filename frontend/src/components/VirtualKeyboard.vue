@@ -66,7 +66,7 @@ const handleKeyClick = (key) => {
   gap: var(--keyboard-row-gap, 8px);
   width: 100%;
   margin: 0 auto;
-  max-width: 600px;
+  max-width: 720px;
 }
 
 .keyboard-row {
@@ -85,7 +85,7 @@ const handleKeyClick = (key) => {
   padding: 0;
   height: var(--keyboard-key-height, 66px);
   min-width: 32px;
-  max-width: 54px;
+  max-width: 64px;
   width: 100%;
   font-weight: 700;
   font-size: 2rem;
@@ -142,14 +142,14 @@ const handleKeyClick = (key) => {
 
 .key.backspace-key {
   min-width: 58px;
-  max-width: 75px;
+  max-width: 88px;
   font-size: 2rem;
   background: var(--action-destructive-gradient);
 }
 
 .key.enter-key {
   min-width: 200px;
-  max-width: 300px;
+  max-width: 360px;
   background: var(--state-correct-gradient);
 }
 

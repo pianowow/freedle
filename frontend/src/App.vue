@@ -523,7 +523,29 @@ onUnmounted(() => {
   overflow: hidden;
 }
 
-@media (max-height: 655px) {
+/* Smoothly shrink the keyboard (and header) as the viewport gets shorter so
+   keys never end up taller than the auto-sized board tiles. */
+@media (max-height: 740px) {
+  #app-container {
+    --keyboard-key-height: 56px;
+    --keyboard-row-gap: 6px;
+  }
+
+  header {
+    min-height: 52px;
+  }
+
+  .header-content h1 {
+    font-size: 1.7rem;
+  }
+
+  .title-icon {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+}
+
+@media (max-height: 680px) {
   #app-container {
     --keyboard-key-height: 48px;
     --keyboard-row-gap: 4px;
@@ -555,7 +577,7 @@ header {
   align-items: center;
   gap: 10px;
   width: 100%;
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
@@ -742,7 +764,7 @@ main {
 .endgame-container {
   flex: 1;
   width: 100%;
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 0;
   animation: slideUp 0.4s ease-out;
