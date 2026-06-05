@@ -1,5 +1,5 @@
 <template>
-  <BaseToast :show="show" variant="error" position="inline">
+  <BaseToast :show="show" variant="error" position="top-fixed">
     <template #icon>🚫</template>
     <template #title>Invalid Guess</template>
     <template #message>{{ message }}</template>

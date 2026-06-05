@@ -2,10 +2,7 @@ import { ref, computed } from "vue";
 import { useSettingsStore } from "../stores/settingsStore";
 import { useStatsStore } from "../stores/statsStore";
 import { useDailyGameStore } from "../stores/dailyGameStore";
-import {
-  DATA_CACHE_NAME,
-  LATEST_DICT_VERSION,
-} from "../constants/dictionary";
+import { DATA_CACHE_NAME, LATEST_DICT_VERSION } from "../constants/dictionary";
 
 // Seeded random number generator (mulberry32)
 function seededRandom(seed) {
@@ -196,9 +193,16 @@ export function useGame() {
   const keyStatuses = ref({});
   const justSubmittedRow = ref(-1);
 
+  // Tile size (px), measured fluidly by the board ResizeObserver in App.vue.
+  const tileSize = ref(60);
+  function setTileSize(size) {
+    tileSize.value = size;
+  }
+
   // Grid style computed
   const gridStyle = computed(() => ({
     "--cols": wordLength.value,
+    "--tile-size": `${tileSize.value}px`,
   }));
 
   function createWordBuckets() {
@@ -231,7 +235,10 @@ export function useGame() {
   const clientId = (() => {
     let id = localStorage.getItem("freedle_client_id");
     if (!id) {
-      id = "c_" + Math.random().toString(36).slice(2, 11) + Date.now().toString(36);
+      id =
+        "c_" +
+        Math.random().toString(36).slice(2, 11) +
+        Date.now().toString(36);
       localStorage.setItem("freedle_client_id", id);
     }
     return id;
@@ -332,7 +339,9 @@ export function useGame() {
     isDailyGame.value = daily;
     activeWordLength.value = settingsStore.wordLength;
     currentDailyDate.value = "";
-    currentRandomSeed.value = daily ? null : Math.floor(Math.random() * 2 ** 32);
+    currentRandomSeed.value = daily
+      ? null
+      : Math.floor(Math.random() * 2 ** 32);
     // If daily game, try to restore saved state
     if (daily) {
       const savedState = dailyGameStore.getGameState(wordLength.value);
@@ -383,7 +392,8 @@ export function useGame() {
     isDailyGame.value = shareData.type === "daily";
     activeWordLength.value = shareData.length;
     currentDailyDate.value = shareData.type === "daily" ? shareData.date : "";
-    currentRandomSeed.value = shareData.type === "random" ? shareData.seed : null;
+    currentRandomSeed.value =
+      shareData.type === "random" ? shareData.seed : null;
 
     resetRoundState();
 
@@ -414,18 +424,22 @@ export function useGame() {
     });
   }
 
-  const buildDataUrl = (fileName) => `${import.meta.env.BASE_URL}data/${fileName}`;
+  const buildDataUrl = (fileName) =>
+    `${import.meta.env.BASE_URL}data/${fileName}`;
 
   const fetchWithOfflineCache = async (fileName) => {
     const url = buildDataUrl(fileName);
-    const cache = typeof window !== "undefined" && "caches" in window
-      ? await caches.open(DATA_CACHE_NAME)
-      : null;
+    const cache =
+      typeof window !== "undefined" && "caches" in window
+        ? await caches.open(DATA_CACHE_NAME)
+        : null;
 
     try {
       const response = await fetch(url);
       if (!response.ok) {
-        const fetchError = new Error(`Failed to fetch ${fileName}: ${response.status}`);
+        const fetchError = new Error(
+          `Failed to fetch ${fileName}: ${response.status}`,
+        );
         fetchError.status = response.status;
         fetchError.fileName = fileName;
         throw fetchError;
@@ -455,7 +469,8 @@ export function useGame() {
     }
 
     const loadPromise = (async () => {
-      const { dictionaryFile, allowedGuessesFile } = getVersionedDataFiles(version);
+      const { dictionaryFile, allowedGuessesFile } =
+        getVersionedDataFiles(version);
 
       try {
         const [dictRes, allowedRes] = await Promise.all([
@@ -521,7 +536,8 @@ export function useGame() {
       if (error.message.startsWith("Dictionary version ")) {
         message.value = error.message;
       } else {
-        message.value = "Dictionary unavailable offline. Open Freedle once online to cache game data.";
+        message.value =
+          "Dictionary unavailable offline. Open Freedle once online to cache game data.";
       }
     } finally {
       isLoading.value = false;
@@ -571,7 +587,11 @@ export function useGame() {
 
   function getTileColor(rowIndex, colIndex) {
     if (rowIndex >= currentRow.value) return "idle";
-    return evaluateTileColor(guesses.value[rowIndex], targetWord.value, colIndex);
+    return evaluateTileColor(
+      guesses.value[rowIndex],
+      targetWord.value,
+      colIndex,
+    );
   }
 
   // Get letter count for count mode (shows how many times a letter appears in target)
@@ -644,14 +664,10 @@ export function useGame() {
               });
               const newAchievements = isSharedGame.value
                 ? []
-                : statsStore.recordWin(
-                  currentRow.value,
-                  wordLength.value,
-                  {
+                : statsStore.recordWin(currentRow.value, wordLength.value, {
                     hardMode: settingsStore.hardMode,
                     countMode: settingsStore.countMode,
-                  },
-                );
+                  });
               if (newAchievements.length > 0 && onAchievements) {
                 onAchievements(newAchievements);
               }
@@ -701,6 +717,8 @@ export function useGame() {
     keyStatuses,
     activeWordLength,
     wordLength,
+    tileSize,
+    setTileSize,
     gridStyle,
     isDailyGame,
     isSharedGame,

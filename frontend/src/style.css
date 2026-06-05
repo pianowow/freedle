@@ -1,6 +1,17 @@
 :root {
-  font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
-    Roboto, Oxygen, Ubuntu, Cantarell, "Open Sans", "Helvetica Neue", sans-serif;
+  font-family:
+    "Inter",
+    system-ui,
+    -apple-system,
+    BlinkMacSystemFont,
+    "Segoe UI",
+    Roboto,
+    Oxygen,
+    Ubuntu,
+    Cantarell,
+    "Open Sans",
+    "Helvetica Neue",
+    sans-serif;
   line-height: 1.5;
   font-weight: 400;
 
@@ -16,7 +27,11 @@
 
 [data-theme="dark"] {
   --app-background: #0c0c0d;
-  --app-background-gradient: radial-gradient(circle at center, #1a1a1c 0%, #0c0c0d 100%);
+  --app-background-gradient: radial-gradient(
+    circle at center,
+    #1a1a1c 0%,
+    #0c0c0d 100%
+  );
   --app-chrome-theme: #0c0c0d;
   --surface-scrim: rgb(0 0 0 / 0.75);
   --surface-panel: #121213;
@@ -49,17 +64,32 @@
   --state-correct-tint-strong: rgb(83 141 78 / 0.2);
   --state-correct-glow: rgb(83 141 78 / 0.4);
   --state-correct-gradient: linear-gradient(rgb(110 169 94), rgb(83 125 78));
-  --state-correct-gradient-hover: linear-gradient(rgb(104 161 90 / 0.8), rgb(83 125 78 / 0.8));
+  --state-correct-gradient-hover: linear-gradient(
+    rgb(104 161 90 / 0.8),
+    rgb(83 125 78 / 0.8)
+  );
   --state-present-gradient: linear-gradient(rgb(217 206 85), rgb(128 124 3));
-  --state-present-gradient-hover: linear-gradient(rgb(217 206 85 / 0.8), rgb(128 124 3 / 0.8));
+  --state-present-gradient-hover: linear-gradient(
+    rgb(217 206 85 / 0.8),
+    rgb(128 124 3 / 0.8)
+  );
   --state-absent-border: #3a3a3c;
   --state-absent-gradient: linear-gradient(rgb(77 77 77), rgb(38 38 38));
-  --state-absent-gradient-hover: linear-gradient(rgb(77 77 77 / 0.8), rgb(38 38 38 / 0.8));
+  --state-absent-gradient-hover: linear-gradient(
+    rgb(77 77 77 / 0.8),
+    rgb(38 38 38 / 0.8)
+  );
   --feedback-info: #446cc9;
   --feedback-warning: #d6932f;
   --feedback-error: #c94444;
-  --action-destructive-gradient: linear-gradient(rgb(156 32 32), rgb(105 18 18));
-  --action-destructive-gradient-hover: linear-gradient(rgb(156 32 32 / 0.8), rgb(105 18 18 / 0.8));
+  --action-destructive-gradient: linear-gradient(
+    rgb(156 32 32),
+    rgb(105 18 18)
+  );
+  --action-destructive-gradient-hover: linear-gradient(
+    rgb(156 32 32 / 0.8),
+    rgb(105 18 18 / 0.8)
+  );
 }
 
 *,
@@ -82,7 +112,7 @@ body {
 
 #app {
   width: 100%;
-  max-width: 600px;
+  max-width: 720px;
   height: 100vh;
   display: flex;
   flex-direction: column;

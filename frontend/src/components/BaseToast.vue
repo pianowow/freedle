@@ -34,7 +34,8 @@ const props = defineProps({
   variant: {
     type: String,
     default: "success",
-    validator: (value) => ["success", "info", "warning", "error"].includes(value),
+    validator: (value) =>
+      ["success", "info", "warning", "error"].includes(value),
   },
 });
 
@@ -79,10 +80,10 @@ const transitionName = computed(() => {
 }
 
 .toast-position-top-fixed {
-  position: fixed;
-  top: 80px;
-  left: 50%;
-  transform: translateX(-50%);
+  /* Positioning is handled by the parent .toast-stack container so that
+     multiple simultaneous toasts stack vertically instead of overlapping. */
+  position: relative;
+  pointer-events: auto;
 }
 
 .toast-position-inline {
@@ -173,25 +174,25 @@ const transitionName = computed(() => {
 @keyframes toastIn-fixed {
   0% {
     opacity: 0;
-    transform: translateX(-50%) translateY(-20px) scale(0.9);
+    transform: translateY(-20px) scale(0.9);
   }
   50% {
-    transform: translateX(-50%) translateY(5px) scale(1.05);
+    transform: translateY(5px) scale(1.05);
   }
   100% {
     opacity: 1;
-    transform: translateX(-50%) translateY(0) scale(1);
+    transform: translateY(0) scale(1);
   }
 }
 
 @keyframes toastOut-fixed {
   from {
     opacity: 1;
-    transform: translateX(-50%) translateY(0);
+    transform: translateY(0);
   }
   to {
     opacity: 0;
-    transform: translateX(-50%) translateY(-20px);
+    transform: translateY(-20px);
   }
 }
 </style>

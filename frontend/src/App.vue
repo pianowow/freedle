@@ -20,13 +20,19 @@
 
     <main>
       <div class="board-stage">
-        <div v-if="isSharedGame" class="challenge-ribbon" aria-label="Challenge mode active">
+        <div
+          v-if="isSharedGame"
+          class="challenge-ribbon"
+          aria-label="Challenge mode active"
+        >
           <span class="challenge-ribbon-kicker">Challenge Mode</span>
           <span class="challenge-ribbon-divider"></span>
-          <span class="challenge-ribbon-copy">Social game · stats disabled</span>
+          <span class="challenge-ribbon-copy"
+            >Social game · stats disabled</span
+          >
         </div>
 
-        <div class="game-grid" :style="gridStyle">
+        <div ref="gridEl" class="game-grid" :style="gridStyle">
           <template v-for="(row, rowIndex) in 6" :key="rowIndex">
             <div :class="['row', { shake: shakingRow === rowIndex }]">
               <LetterTile
@@ -44,11 +50,6 @@
         </div>
       </div>
     </main>
-
-    <div v-if="gameState === 'playing'" class="game-status-area">
-      <ReloadToast :show="needRefresh" @reload="updateServiceWorker()" />
-      <ValidationToast :show="!!message" :message="message || ''" />
-    </div>
 
     <footer :class="{ 'is-endgame': gameState !== 'playing' }">
       <VirtualKeyboard
@@ -102,20 +103,25 @@
       </div>
     </footer>
 
-    <AchievementToast
-      :show="!!newAchievement"
-      :achievement="newAchievement || {}"
-    />
+    <div class="toast-stack">
+      <ReloadToast :show="needRefresh" @reload="updateServiceWorker()" />
+      <ValidationToast :show="!!message" :message="message || ''" />
 
-    <BaseToast
-      :show="appToast.show"
-      :variant="appToast.variant"
-      position="top-fixed"
-    >
-      <template #icon>{{ appToast.icon }}</template>
-      <template #title>{{ appToast.title }}</template>
-      <template #message>{{ appToast.message }}</template>
-    </BaseToast>
+      <AchievementToast
+        :show="!!newAchievement"
+        :achievement="newAchievement || {}"
+      />
+
+      <BaseToast
+        :show="appToast.show"
+        :variant="appToast.variant"
+        position="top-fixed"
+      >
+        <template #icon>{{ appToast.icon }}</template>
+        <template #title>{{ appToast.title }}</template>
+        <template #message>{{ appToast.message }}</template>
+      </BaseToast>
+    </div>
 
     <div v-if="isLoading || isHandlingShare" class="loading-overlay">
       <div class="loader"></div>
@@ -134,7 +140,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from "vue";
+import { computed, ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 import LetterTile from "./components/LetterTile.vue";
 import VirtualKeyboard from "./components/VirtualKeyboard.vue";
 import { useRegisterSW } from "virtual:pwa-register/vue";
@@ -172,6 +178,7 @@ const {
   shakingRow,
   keyStatuses,
   wordLength,
+  setTileSize,
   gridStyle,
   isDailyGame,
   isSharedGame,
@@ -194,6 +201,46 @@ const {
 
 // Current day of month (updated when app becomes visible)
 const currentDayOfMonth = ref(new Date().getDate());
+
+// Fluid square board sizing
+const gridEl = ref(null);
+let boardResizeObserver = null;
+const TILE_MIN = 28;
+const TILE_GAP = 5;
+const BOARD_ROWS = 6;
+
+function computeTileSizeFrom(width, height) {
+  if (!width || !height) return;
+  const cols = wordLength.value;
+  const heightFit = (height - (BOARD_ROWS - 1) * TILE_GAP) / BOARD_ROWS;
+  const widthFit = (width - (cols - 1) * TILE_GAP) / cols;
+  const raw = Math.min(heightFit, widthFit);
+  // No upper bound — let tiles fill whatever space is available. Keep a lower
+  // bound so tiles never get unusably small / overflow on tiny screens.
+  const clamped = Math.max(TILE_MIN, raw);
+  setTileSize(Math.floor(clamped));
+}
+
+function computeTileSize() {
+  const el = gridEl.value;
+  if (!el) return;
+  // Use the parent (.board-stage allocation) so measurement is independent of
+  // the grid's own content height, which depends on --tile-size (avoids a
+  // feedback loop where the grid can grow but never shrinks back).
+  const parent = el.parentElement;
+  if (!parent) return;
+  const cs = getComputedStyle(parent);
+  const padY =
+    parseFloat(cs.paddingTop || 0) + parseFloat(cs.paddingBottom || 0);
+  const padX =
+    parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0);
+  const ribbon = parent.querySelector(".challenge-ribbon");
+  const gapY = ribbon ? parseFloat(cs.rowGap || cs.gap || 0) || 0 : 0;
+  const ribbonH = ribbon ? ribbon.getBoundingClientRect().height : 0;
+  const availH = parent.clientHeight - padY - ribbonH - gapY;
+  const availW = parent.clientWidth - padX;
+  computeTileSizeFrom(availW, availH);
+}
 
 // Modal visibility
 const showSettingsModal = ref(false);
@@ -275,8 +322,9 @@ async function resolveAndLoadSharedChallenge(shareData) {
   try {
     const dictionaryData = await loadDictionaryVersion(shareData.version);
     const selectedWord = resolveSharedChallengeWord(shareData, dictionaryData);
-    const verified = selectedWord !== null &&
-      await verifyShare(shareData, selectedWord.word);
+    const verified =
+      selectedWord !== null &&
+      (await verifyShare(shareData, selectedWord.word));
 
     if (!verified) {
       showAppToast({
@@ -380,6 +428,11 @@ function handlePhysicalKeyUp() {
   }
 }
 
+// Column count affects width fit; recompute when word length changes.
+watch(wordLength, () => {
+  nextTick(() => requestAnimationFrame(computeTileSize));
+});
+
 function handleVisibilityChange() {
   if (document.visibilityState === "visible") {
     // Update the day of month when app becomes visible
@@ -392,6 +445,18 @@ onMounted(() => {
   window.addEventListener("keyup", handlePhysicalKeyUp);
   window.addEventListener("touchend", handlePhysicalKeyUp);
   document.addEventListener("visibilitychange", handleVisibilityChange);
+
+  boardResizeObserver = new ResizeObserver(() => {
+    // Defer to next frame to avoid "ResizeObserver loop" warnings since we
+    // write a CSS var that affects layout.
+    requestAnimationFrame(computeTileSize);
+  });
+  // Observe the parent (.board-stage) which is sized by flex, not by tile
+  // content, so grow and shrink are both detected reliably.
+  if (gridEl.value?.parentElement) {
+    boardResizeObserver.observe(gridEl.value.parentElement);
+  }
+  nextTick(() => requestAnimationFrame(computeTileSize));
 
   const boot = async () => {
     const sharedChallenge = parseShareParams(
@@ -426,6 +491,11 @@ onUnmounted(() => {
   window.removeEventListener("touchend", handlePhysicalKeyUp);
   document.removeEventListener("visibilitychange", handleVisibilityChange);
 
+  if (boardResizeObserver) {
+    boardResizeObserver.disconnect();
+    boardResizeObserver = null;
+  }
+
   if (appToastTimerId !== null) {
     clearTimeout(appToastTimerId);
   }
@@ -434,12 +504,59 @@ onUnmounted(() => {
 
 <style>
 #app-container {
+  /* Keyboard geometry: 4 rows of keys + 3 gaps between them.
+     Kept in sync with VirtualKeyboard.vue so the endgame footer can
+     reserve the exact same vertical space and the board never shifts. */
+  --keyboard-key-height: 66px;
+  --keyboard-row-gap: 8px;
+  --keyboard-rows: 4;
+  --keyboard-height: calc(
+    var(--keyboard-key-height) * var(--keyboard-rows) +
+      var(--keyboard-row-gap) * (var(--keyboard-rows) - 1)
+  );
+
   display: flex;
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
   width: 100%;
   overflow: hidden;
+}
+
+/* Smoothly shrink the keyboard (and header) as the viewport gets shorter so
+   keys never end up taller than the auto-sized board tiles. */
+@media (max-height: 740px) {
+  #app-container {
+    --keyboard-key-height: 56px;
+    --keyboard-row-gap: 6px;
+  }
+
+  header {
+    min-height: 52px;
+  }
+
+  .header-content h1 {
+    font-size: 1.7rem;
+  }
+
+  .title-icon {
+    width: 2.1rem;
+    height: 2.1rem;
+  }
+}
+
+@media (max-height: 680px) {
+  #app-container {
+    --keyboard-key-height: 48px;
+    --keyboard-row-gap: 4px;
+  }
+}
+
+@media (max-height: 605px) {
+  #app-container {
+    --keyboard-key-height: 40px;
+    --keyboard-row-gap: 3px;
+  }
 }
 
 header {
@@ -460,7 +577,7 @@ header {
   align-items: center;
   gap: 10px;
   width: 100%;
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
 }
 
@@ -533,9 +650,10 @@ header {
 }
 
 main {
-  margin-top: 10px;
+  flex: 1; /* Grow to absorb free space so the keyboard sits at the bottom */
+  min-height: 0;
   display: flex;
-  align-items: flex-start; /* Keep at top so it doesn't move */
+  align-items: stretch; /* Let board-stage take full height for fluid sizing */
   justify-content: center;
   padding: 0 5px; /* Removed vertical padding */
   overflow: hidden;
@@ -543,14 +661,19 @@ main {
 
 .board-stage {
   display: flex;
+  flex: 1;
+  min-height: 0;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 10px;
+  padding: 12px 0;
   width: 100%;
 }
 
 .challenge-ribbon {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 10px;
   max-width: min(100%, 420px);
@@ -585,18 +708,6 @@ main {
   font-size: 0.84rem;
   letter-spacing: 0.02rem;
   white-space: nowrap;
-}
-
-.game-status-area {
-  flex-grow: 1;
-  min-height: 80px; /* Reserve space for the toast */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 0 10px;
-  position: relative; /* For child z-index */
 }
 
 .status-content {
@@ -653,7 +764,7 @@ main {
 .endgame-container {
   flex: 1;
   width: 100%;
-  max-width: 600px;
+  max-width: 720px;
   margin: 0 auto;
   padding: 0;
   animation: slideUp 0.4s ease-out;
@@ -754,7 +865,11 @@ main {
 
 .game-grid {
   display: flex;
+  flex: 0 1 auto; /* Size to content (tiles) so the ribbon+grid group is
+                     centered as a unit by .board-stage's justify-content */
+  min-height: 0;
   flex-direction: column;
+  justify-content: center;
   gap: 5px;
 }
 
@@ -773,14 +888,30 @@ footer {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  min-height: 180px;
+  /* Reserve exactly the keyboard's height (+ bottom padding) so the board
+     stays put when switching between the keyboard and the endgame panel. */
+  height: calc(var(--keyboard-height) + 8px);
   flex-shrink: 0;
 }
 
 footer.is-endgame {
-  flex: 1;
-  min-height: 200px;
-  max-height: 65%; /* Increased to give more room */
+  /* Match the keyboard footer height so the board doesn't move */
+  height: calc(var(--keyboard-height) + 8px);
+}
+
+.toast-stack {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100vw - 20px);
+  pointer-events: none; /* Let clicks pass through gaps; toasts re-enable it */
 }
 
 .loading-overlay {
