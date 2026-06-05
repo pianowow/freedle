@@ -81,7 +81,7 @@ const handleKeyClick = (key) => {
   border: 0 solid transparent;
   border-radius: 6px;
   padding: 0;
-  height: 58px;
+  height: 66px;
   min-width: 32px;
   max-width: 54px;
   width: 100%;

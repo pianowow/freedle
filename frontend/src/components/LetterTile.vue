@@ -44,8 +44,8 @@ defineProps({
 <style scoped>
 .letter-tile {
   position: relative;
-  width: 80px;
-  height: 80px;
+  width: 88px;
+  height: 88px;
   color: var(--text-on-accent);
   border: 2px solid var(--state-absent-border);
   display: flex;
@@ -198,16 +198,16 @@ defineProps({
 
 @media (max-width: 505px), (max-height: 925px) {
   .letter-tile {
-    width: 70px;
-    height: 70px;
+    width: 76px;
+    height: 76px;
     font-size: 2.3rem;
   }
 }
 
 @media (max-width: 445px), (max-height: 862px) {
   .letter-tile {
-    width: 60px;
-    height: 60px;
+    width: 66px;
+    height: 66px;
     font-size: 2rem;
   }
 }

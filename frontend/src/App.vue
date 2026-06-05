@@ -20,10 +20,16 @@
 
     <main>
       <div class="board-stage">
-        <div v-if="isSharedGame" class="challenge-ribbon" aria-label="Challenge mode active">
+        <div
+          v-if="isSharedGame"
+          class="challenge-ribbon"
+          aria-label="Challenge mode active"
+        >
           <span class="challenge-ribbon-kicker">Challenge Mode</span>
           <span class="challenge-ribbon-divider"></span>
-          <span class="challenge-ribbon-copy">Social game · stats disabled</span>
+          <span class="challenge-ribbon-copy"
+            >Social game · stats disabled</span
+          >
         </div>
 
         <div class="game-grid" :style="gridStyle">
@@ -44,11 +50,6 @@
         </div>
       </div>
     </main>
-
-    <div v-if="gameState === 'playing'" class="game-status-area">
-      <ReloadToast :show="needRefresh" @reload="updateServiceWorker()" />
-      <ValidationToast :show="!!message" :message="message || ''" />
-    </div>
 
     <footer :class="{ 'is-endgame': gameState !== 'playing' }">
       <VirtualKeyboard
@@ -102,20 +103,25 @@
       </div>
     </footer>
 
-    <AchievementToast
-      :show="!!newAchievement"
-      :achievement="newAchievement || {}"
-    />
+    <div class="toast-stack">
+      <ReloadToast :show="needRefresh" @reload="updateServiceWorker()" />
+      <ValidationToast :show="!!message" :message="message || ''" />
 
-    <BaseToast
-      :show="appToast.show"
-      :variant="appToast.variant"
-      position="top-fixed"
-    >
-      <template #icon>{{ appToast.icon }}</template>
-      <template #title>{{ appToast.title }}</template>
-      <template #message>{{ appToast.message }}</template>
-    </BaseToast>
+      <AchievementToast
+        :show="!!newAchievement"
+        :achievement="newAchievement || {}"
+      />
+
+      <BaseToast
+        :show="appToast.show"
+        :variant="appToast.variant"
+        position="top-fixed"
+      >
+        <template #icon>{{ appToast.icon }}</template>
+        <template #title>{{ appToast.title }}</template>
+        <template #message>{{ appToast.message }}</template>
+      </BaseToast>
+    </div>
 
     <div v-if="isLoading || isHandlingShare" class="loading-overlay">
       <div class="loader"></div>
@@ -275,8 +281,9 @@ async function resolveAndLoadSharedChallenge(shareData) {
   try {
     const dictionaryData = await loadDictionaryVersion(shareData.version);
     const selectedWord = resolveSharedChallengeWord(shareData, dictionaryData);
-    const verified = selectedWord !== null &&
-      await verifyShare(shareData, selectedWord.word);
+    const verified =
+      selectedWord !== null &&
+      (await verifyShare(shareData, selectedWord.word));
 
     if (!verified) {
       showAppToast({
@@ -533,9 +540,10 @@ header {
 }
 
 main {
-  margin-top: 10px;
+  flex: 1; /* Grow to absorb free space so the keyboard sits at the bottom */
+  min-height: 0;
   display: flex;
-  align-items: flex-start; /* Keep at top so it doesn't move */
+  align-items: center; /* Center the board in the available vertical space */
   justify-content: center;
   padding: 0 5px; /* Removed vertical padding */
   overflow: hidden;
@@ -585,18 +593,6 @@ main {
   font-size: 0.84rem;
   letter-spacing: 0.02rem;
   white-space: nowrap;
-}
-
-.game-status-area {
-  flex-grow: 1;
-  min-height: 80px; /* Reserve space for the toast */
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  padding: 0 10px;
-  position: relative; /* For child z-index */
 }
 
 .status-content {
@@ -781,6 +777,21 @@ footer.is-endgame {
   flex: 1;
   min-height: 200px;
   max-height: 65%; /* Increased to give more room */
+}
+
+.toast-stack {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 2000;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 10px;
+  width: max-content;
+  max-width: calc(100vw - 20px);
+  pointer-events: none; /* Let clicks pass through gaps; toasts re-enable it */
 }
 
 .loading-overlay {
