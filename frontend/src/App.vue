@@ -32,7 +32,7 @@
           >
         </div>
 
-        <div class="game-grid" :style="gridStyle">
+        <div ref="gridEl" class="game-grid" :style="gridStyle">
           <template v-for="(row, rowIndex) in 6" :key="rowIndex">
             <div :class="['row', { shake: shakingRow === rowIndex }]">
               <LetterTile
@@ -140,7 +140,7 @@
 </template>
 
 <script setup>
-import { computed, ref, onMounted, onUnmounted } from "vue";
+import { computed, ref, watch, nextTick, onMounted, onUnmounted } from "vue";
 import LetterTile from "./components/LetterTile.vue";
 import VirtualKeyboard from "./components/VirtualKeyboard.vue";
 import { useRegisterSW } from "virtual:pwa-register/vue";
@@ -178,6 +178,7 @@ const {
   shakingRow,
   keyStatuses,
   wordLength,
+  setTileSize,
   gridStyle,
   isDailyGame,
   isSharedGame,
@@ -200,6 +201,46 @@ const {
 
 // Current day of month (updated when app becomes visible)
 const currentDayOfMonth = ref(new Date().getDate());
+
+// Fluid square board sizing
+const gridEl = ref(null);
+let boardResizeObserver = null;
+const TILE_MIN = 28;
+const TILE_GAP = 5;
+const BOARD_ROWS = 6;
+
+function computeTileSizeFrom(width, height) {
+  if (!width || !height) return;
+  const cols = wordLength.value;
+  const heightFit = (height - (BOARD_ROWS - 1) * TILE_GAP) / BOARD_ROWS;
+  const widthFit = (width - (cols - 1) * TILE_GAP) / cols;
+  const raw = Math.min(heightFit, widthFit);
+  // No upper bound — let tiles fill whatever space is available. Keep a lower
+  // bound so tiles never get unusably small / overflow on tiny screens.
+  const clamped = Math.max(TILE_MIN, raw);
+  setTileSize(Math.floor(clamped));
+}
+
+function computeTileSize() {
+  const el = gridEl.value;
+  if (!el) return;
+  // Use the parent (.board-stage allocation) so measurement is independent of
+  // the grid's own content height, which depends on --tile-size (avoids a
+  // feedback loop where the grid can grow but never shrinks back).
+  const parent = el.parentElement;
+  if (!parent) return;
+  const cs = getComputedStyle(parent);
+  const padY =
+    parseFloat(cs.paddingTop || 0) + parseFloat(cs.paddingBottom || 0);
+  const padX =
+    parseFloat(cs.paddingLeft || 0) + parseFloat(cs.paddingRight || 0);
+  const ribbon = parent.querySelector(".challenge-ribbon");
+  const gapY = ribbon ? parseFloat(cs.rowGap || cs.gap || 0) || 0 : 0;
+  const ribbonH = ribbon ? ribbon.getBoundingClientRect().height : 0;
+  const availH = parent.clientHeight - padY - ribbonH - gapY;
+  const availW = parent.clientWidth - padX;
+  computeTileSizeFrom(availW, availH);
+}
 
 // Modal visibility
 const showSettingsModal = ref(false);
@@ -387,6 +428,11 @@ function handlePhysicalKeyUp() {
   }
 }
 
+// Column count affects width fit; recompute when word length changes.
+watch(wordLength, () => {
+  nextTick(() => requestAnimationFrame(computeTileSize));
+});
+
 function handleVisibilityChange() {
   if (document.visibilityState === "visible") {
     // Update the day of month when app becomes visible
@@ -399,6 +445,18 @@ onMounted(() => {
   window.addEventListener("keyup", handlePhysicalKeyUp);
   window.addEventListener("touchend", handlePhysicalKeyUp);
   document.addEventListener("visibilitychange", handleVisibilityChange);
+
+  boardResizeObserver = new ResizeObserver(() => {
+    // Defer to next frame to avoid "ResizeObserver loop" warnings since we
+    // write a CSS var that affects layout.
+    requestAnimationFrame(computeTileSize);
+  });
+  // Observe the parent (.board-stage) which is sized by flex, not by tile
+  // content, so grow and shrink are both detected reliably.
+  if (gridEl.value?.parentElement) {
+    boardResizeObserver.observe(gridEl.value.parentElement);
+  }
+  nextTick(() => requestAnimationFrame(computeTileSize));
 
   const boot = async () => {
     const sharedChallenge = parseShareParams(
@@ -432,6 +490,11 @@ onUnmounted(() => {
   window.removeEventListener("keyup", handlePhysicalKeyUp);
   window.removeEventListener("touchend", handlePhysicalKeyUp);
   document.removeEventListener("visibilitychange", handleVisibilityChange);
+
+  if (boardResizeObserver) {
+    boardResizeObserver.disconnect();
+    boardResizeObserver = null;
+  }
 
   if (appToastTimerId !== null) {
     clearTimeout(appToastTimerId);
@@ -568,7 +631,7 @@ main {
   flex: 1; /* Grow to absorb free space so the keyboard sits at the bottom */
   min-height: 0;
   display: flex;
-  align-items: center; /* Center the board in the available vertical space */
+  align-items: stretch; /* Let board-stage take full height for fluid sizing */
   justify-content: center;
   padding: 0 5px; /* Removed vertical padding */
   overflow: hidden;
@@ -576,14 +639,19 @@ main {
 
 .board-stage {
   display: flex;
+  flex: 1;
+  min-height: 0;
   flex-direction: column;
   align-items: center;
+  justify-content: center;
   gap: 10px;
+  padding: 12px 0;
   width: 100%;
 }
 
 .challenge-ribbon {
   display: inline-flex;
+  flex: 0 0 auto;
   align-items: center;
   gap: 10px;
   max-width: min(100%, 420px);
@@ -775,7 +843,11 @@ main {
 
 .game-grid {
   display: flex;
+  flex: 0 1 auto; /* Size to content (tiles) so the ribbon+grid group is
+                     centered as a unit by .board-stage's justify-content */
+  min-height: 0;
   flex-direction: column;
+  justify-content: center;
   gap: 5px;
 }
 

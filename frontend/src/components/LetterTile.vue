@@ -44,18 +44,19 @@ defineProps({
 <style scoped>
 .letter-tile {
   position: relative;
-  width: 88px;
-  height: 88px;
+  width: var(--tile-size, 60px);
+  height: var(--tile-size, 60px);
   color: var(--text-on-accent);
-  border: 2px solid var(--state-absent-border);
+  border: max(1px, calc(var(--tile-size, 60px) * 0.03)) solid
+    var(--state-absent-border);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 2.5rem;
+  font-size: calc(var(--tile-size, 60px) * 0.45);
   font-weight: bold;
   text-transform: uppercase;
   user-select: none;
-  border-radius: 4px;
+  border-radius: max(3px, calc(var(--tile-size, 60px) * 0.06));
   backface-visibility: hidden;
   transition: border-color 0.2s;
 }
@@ -185,48 +186,14 @@ defineProps({
   right: 3px;
   background: var(--surface-scrim);
   color: var(--text-on-accent);
-  font-size: 0.7rem;
+  font-size: max(8px, calc(var(--tile-size, 60px) * 0.2));
   font-weight: 700;
-  width: 16px;
-  height: 16px;
+  width: max(12px, calc(var(--tile-size, 60px) * 0.26));
+  height: max(12px, calc(var(--tile-size, 60px) * 0.26));
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   line-height: 1;
-}
-
-@media (max-width: 505px), (max-height: 925px) {
-  .letter-tile {
-    width: 76px;
-    height: 76px;
-    font-size: 2.3rem;
-  }
-}
-
-@media (max-width: 445px), (max-height: 862px) {
-  .letter-tile {
-    width: 66px;
-    height: 66px;
-    font-size: 2rem;
-  }
-}
-
-@media (max-width: 385px), (max-height: 802px) {
-  .letter-tile {
-    width: 50px;
-    height: 50px;
-    font-size: 1.2rem;
-    border-width: 1px;
-  }
-}
-
-@media (max-width: 325px), (max-height: 742px) {
-  .letter-tile {
-    width: 40px;
-    height: 40px;
-    font-size: 1.2rem;
-    border-width: 1px;
-  }
 }
 </style>
