@@ -441,12 +441,37 @@ onUnmounted(() => {
 
 <style>
 #app-container {
+  /* Keyboard geometry: 4 rows of keys + 3 gaps between them.
+     Kept in sync with VirtualKeyboard.vue so the endgame footer can
+     reserve the exact same vertical space and the board never shifts. */
+  --keyboard-key-height: 66px;
+  --keyboard-row-gap: 8px;
+  --keyboard-rows: 4;
+  --keyboard-height: calc(
+    var(--keyboard-key-height) * var(--keyboard-rows) +
+      var(--keyboard-row-gap) * (var(--keyboard-rows) - 1)
+  );
+
   display: flex;
   flex-direction: column;
   height: 100vh;
   height: 100dvh;
   width: 100%;
   overflow: hidden;
+}
+
+@media (max-height: 655px) {
+  #app-container {
+    --keyboard-key-height: 48px;
+    --keyboard-row-gap: 4px;
+  }
+}
+
+@media (max-height: 605px) {
+  #app-container {
+    --keyboard-key-height: 40px;
+    --keyboard-row-gap: 3px;
+  }
 }
 
 header {
@@ -769,14 +794,15 @@ footer {
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
-  min-height: 180px;
+  /* Reserve exactly the keyboard's height (+ bottom padding) so the board
+     stays put when switching between the keyboard and the endgame panel. */
+  height: calc(var(--keyboard-height) + 8px);
   flex-shrink: 0;
 }
 
 footer.is-endgame {
-  flex: 1;
-  min-height: 200px;
-  max-height: 65%; /* Increased to give more room */
+  /* Match the keyboard footer height so the board doesn't move */
+  height: calc(var(--keyboard-height) + 8px);
 }
 
 .toast-stack {

@@ -61,7 +61,9 @@ const handleKeyClick = (key) => {
 .keyboard {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  /* Use the shared keyboard geometry variables so the endgame footer
+     (App.vue) can reserve an identical height. Falls back to literals. */
+  gap: var(--keyboard-row-gap, 8px);
   width: 100%;
   margin: 0 auto;
   max-width: 600px;
@@ -81,7 +83,7 @@ const handleKeyClick = (key) => {
   border: 0 solid transparent;
   border-radius: 6px;
   padding: 0;
-  height: 66px;
+  height: var(--keyboard-key-height, 66px);
   min-width: 32px;
   max-width: 54px;
   width: 100%;
@@ -176,29 +178,16 @@ const handleKeyClick = (key) => {
 }
 
 @media (max-height: 655px) {
-  .keyboard {
-    gap: 4px;
-  }
+  /* gap/height come from the shared variables overridden in App.vue */
   .key {
-    height: 48px;
     font-size: 1.5rem;
-  }
-  .key.backspace-key {
-    height: 48px;
   }
 }
 
 @media (max-height: 605px) {
-  .keyboard {
-    gap: 3px;
-  }
   .key {
-    height: 40px;
     font-size: 0.85rem;
     border-radius: 4px;
-  }
-  .key.backspace-key {
-    height: 40px;
   }
 }
 </style>
