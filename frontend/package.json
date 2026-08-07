@@ -30,7 +30,7 @@
     "@vitest/eslint-plugin": "^1.0.1",
     "eslint-plugin-vue": "^10.6.2",
     "globals": "^17.0.0",
-    "jsdom": "^29.0.2",
+    "jsdom": "^30.0.0",
     "sharp": "^0.34.5",
     "stylelint": "^17.11.0",
     "stylelint-config-standard-vue": "^1.0.0",
