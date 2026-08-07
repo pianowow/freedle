@@ -20,7 +20,7 @@
     "generate:icons": "node scripts/generateThemeIcons.js"
   },
   "dependencies": {
-    "pinia": "^3.0.4",
+    "pinia": "^4.0.0",
     "vue": "^3.5.24"
   },
   "devDependencies": {
