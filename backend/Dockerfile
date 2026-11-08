@@ -1,5 +1,5 @@
 # Build admin frontend
-FROM node:20-alpine AS admin_ui_builder
+FROM node:22-alpine AS admin_ui_builder
 
 # Build under node's home to avoid permission issues in some environments
 USER node
@@ -13,7 +13,7 @@ RUN npm run build
 
 
 # Backend runtime
-FROM node:20-alpine
+FROM node:22-alpine
 WORKDIR /app
 
 COPY backend/package.json backend/package-lock.json ./
